@@ -9,7 +9,6 @@ import (
 )
 
 type Config struct {
-	AbortOnError    bool
 	AllowAllOrigins bool
 
 	// AllowedOrigins is a list of origins a cross-domain request can be executed from.
@@ -64,9 +63,6 @@ func (c Config) Validate() error {
 	if !c.AllowAllOrigins && c.AllowOriginFunc == nil && len(c.AllowedOrigins) == 0 {
 		return errors.New("conflict settings: all origins disabled")
 	}
-	if c.AllowOriginFunc != nil && len(c.AllowedOrigins) > 0 {
-		return errors.New("conflict settings: if a allow origin func is provided, AllowedOrigins is not needed")
-	}
 	for _, origin := range c.AllowedOrigins {
 		if !strings.HasPrefix(origin, "http://") && !strings.HasPrefix(origin, "https://") {
 			return errors.New("bad origin: origins must include http:// or https://")
@@ -77,11 +73,9 @@ func (c Config) Validate() error {
 
 func DefaultConfig() Config {
 	return Config{
-		AbortOnError:    false,
-		AllowAllOrigins: true,
-		AllowedMethods:  []string{"GET", "POST", "PUT", "PATCH", "HEAD"},
-		AllowedHeaders:  []string{"Content-Type"},
-		//ExposedHeaders:   "",
+		AllowAllOrigins:  true,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "HEAD"},
+		AllowedHeaders:   []string{"Content-Type"},
 		AllowCredentials: false,
 		MaxAge:           12 * time.Hour,
 	}
@@ -92,10 +86,8 @@ func Default() gin.HandlerFunc {
 }
 
 func New(config Config) gin.HandlerFunc {
-	s := newCors(config)
-
-	// Algorithm based in http://www.html5rocks.com/static/images/cors_server_flowchart.png
+	cors := newCors(config)
 	return func(c *gin.Context) {
-		s.applyCors(c)
+		cors.applyCors(c)
 	}
 }
