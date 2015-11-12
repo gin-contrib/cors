@@ -44,7 +44,7 @@ func TestBadConfig(t *testing.T) {
 	assert.Panics(t, func() {
 		New(Config{
 			AllowAllOrigins: true,
-			AllowedOrigins:  []string{"http://google.com"},
+			AllowOrigins:    []string{"http://google.com"},
 		})
 	})
 	assert.Panics(t, func() {
@@ -55,7 +55,7 @@ func TestBadConfig(t *testing.T) {
 	})
 	assert.Panics(t, func() {
 		New(Config{
-			AllowedOrigins: []string{"google.com"},
+			AllowOrigins: []string{"google.com"},
 		})
 	})
 }
@@ -101,9 +101,9 @@ func TestGenerateNormalHeaders_AllowCredentials(t *testing.T) {
 
 func TestGenerateNormalHeaders_ExposedHeaders(t *testing.T) {
 	header := generateNormalHeaders(Config{
-		ExposedHeaders: []string{"X-user", "xPassword"},
+		ExposeHeaders: []string{"X-user", "xPassword"},
 	})
-	assert.Equal(t, header.Get("Access-Control-Expose-Headers"), "x-user, xpassword")
+	assert.Equal(t, header.Get("Access-Control-Expose-Headers"), "x-user,xpassword")
 	assert.Equal(t, header.Get("Vary"), "Origin")
 	assert.Len(t, header, 2)
 }
@@ -135,18 +135,18 @@ func TestGeneratePreflightHeaders_AllowCredentials(t *testing.T) {
 
 func TestGeneratePreflightHeaders_AllowedMethods(t *testing.T) {
 	header := generatePreflightHeaders(Config{
-		AllowedMethods: []string{"GET ", "post", "PUT", " put  "},
+		AllowMethods: []string{"GET ", "post", "PUT", " put  "},
 	})
-	assert.Equal(t, header.Get("Access-Control-Allow-Methods"), "get, post, put")
+	assert.Equal(t, header.Get("Access-Control-Allow-Methods"), "get,post,put")
 	assert.Equal(t, header.Get("Vary"), "Origin")
 	assert.Len(t, header, 2)
 }
 
 func TestGeneratePreflightHeaders_AllowedHeaders(t *testing.T) {
 	header := generatePreflightHeaders(Config{
-		AllowedHeaders: []string{"X-user", "Content-Type"},
+		AllowHeaders: []string{"X-user", "Content-Type"},
 	})
-	assert.Equal(t, header.Get("Access-Control-Allow-Headers"), "x-user, content-type")
+	assert.Equal(t, header.Get("Access-Control-Allow-Headers"), "x-user,content-type")
 	assert.Equal(t, header.Get("Vary"), "Origin")
 	assert.Len(t, header, 2)
 }
@@ -169,7 +169,7 @@ func TestValidateOrigin(t *testing.T) {
 	assert.True(t, cors.validateOrigin("example.com"))
 
 	cors = newCors(Config{
-		AllowedOrigins: []string{"https://google.com", "https://github.com"},
+		AllowOrigins: []string{"https://google.com", "https://github.com"},
 		AllowOriginFunc: func(origin string) bool {
 			return (origin == "http://news.ycombinator.com")
 		},
@@ -184,10 +184,10 @@ func TestValidateOrigin(t *testing.T) {
 
 func TestPassesAllowedOrigins(t *testing.T) {
 	router := newTestRouter(Config{
-		AllowedOrigins:   []string{"http://google.com"},
-		AllowedMethods:   []string{" GeT ", "get", "post", "PUT  ", "Head", "POST"},
-		AllowedHeaders:   []string{"Content-type", "timeStamp "},
-		ExposedHeaders:   []string{"Data", "x-User"},
+		AllowOrigins:     []string{"http://google.com"},
+		AllowMethods:     []string{" GeT ", "get", "post", "PUT  ", "Head", "POST"},
+		AllowHeaders:     []string{"Content-type", "timeStamp "},
+		ExposeHeaders:    []string{"Data", "x-User"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 		AllowOriginFunc: func(origin string) bool {
@@ -207,7 +207,7 @@ func TestPassesAllowedOrigins(t *testing.T) {
 	assert.Equal(t, w.Body.String(), "get")
 	assert.Equal(t, w.Header().Get("Access-Control-Allow-Origin"), "http://google.com")
 	assert.Equal(t, w.Header().Get("Access-Control-Allow-Credentials"), "true")
-	assert.Equal(t, w.Header().Get("Access-Control-Expose-Headers"), "data, x-user")
+	assert.Equal(t, w.Header().Get("Access-Control-Expose-Headers"), "data,x-user")
 
 	// deny CORS request
 	w = performRequest(router, "GET", "https://google.com")
@@ -221,8 +221,8 @@ func TestPassesAllowedOrigins(t *testing.T) {
 	assert.Equal(t, w.Code, 200)
 	assert.Equal(t, w.Header().Get("Access-Control-Allow-Origin"), "http://github.com")
 	assert.Equal(t, w.Header().Get("Access-Control-Allow-Credentials"), "true")
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Methods"), "get, post, put, head")
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Headers"), "content-type, timestamp")
+	assert.Equal(t, w.Header().Get("Access-Control-Allow-Methods"), "get,post,put,head")
+	assert.Equal(t, w.Header().Get("Access-Control-Allow-Headers"), "content-type,timestamp")
 	assert.Equal(t, w.Header().Get("Access-Control-Max-Age"), "43200")
 
 	// deny CORS prefligh request
@@ -238,9 +238,9 @@ func TestPassesAllowedOrigins(t *testing.T) {
 func TestPassesAllowedAllOrigins(t *testing.T) {
 	router := newTestRouter(Config{
 		AllowAllOrigins:  true,
-		AllowedMethods:   []string{" Patch ", "get", "post", "POST"},
-		AllowedHeaders:   []string{"Content-type", "  testheader "},
-		ExposedHeaders:   []string{"Data2", "x-User2"},
+		AllowMethods:     []string{" Patch ", "get", "post", "POST"},
+		AllowHeaders:     []string{"Content-type", "  testheader "},
+		ExposeHeaders:    []string{"Data2", "x-User2"},
 		AllowCredentials: false,
 		MaxAge:           10 * time.Hour,
 	})
@@ -256,15 +256,15 @@ func TestPassesAllowedAllOrigins(t *testing.T) {
 	w = performRequest(router, "POST", "example.com")
 	assert.Equal(t, w.Body.String(), "post")
 	assert.Equal(t, w.Header().Get("Access-Control-Allow-Origin"), "*")
-	assert.Equal(t, w.Header().Get("Access-Control-Expose-Headers"), "data2, x-user2")
+	assert.Equal(t, w.Header().Get("Access-Control-Expose-Headers"), "data2,x-user2")
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 
 	// allowed CORS prefligh request
 	w = performRequest(router, "OPTIONS", "https://facebook.com")
 	assert.Equal(t, w.Code, 200)
 	assert.Equal(t, w.Header().Get("Access-Control-Allow-Origin"), "*")
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Methods"), "patch, get, post")
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Headers"), "content-type, testheader")
+	assert.Equal(t, w.Header().Get("Access-Control-Allow-Methods"), "patch,get,post")
+	assert.Equal(t, w.Header().Get("Access-Control-Allow-Headers"), "content-type,testheader")
 	assert.Equal(t, w.Header().Get("Access-Control-Max-Age"), "36000")
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 }

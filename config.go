@@ -7,12 +7,12 @@ import (
 )
 
 type cors struct {
-	allowAllOrigins   bool
-	allowedOriginFunc func(string) bool
-	allowedOrigins    []string
-	exposedHeaders    []string
-	normalHeaders     http.Header
-	preflightHeaders  http.Header
+	allowAllOrigins  bool
+	allowOriginFunc  func(string) bool
+	allowOrigins     []string
+	exposeHeaders    []string
+	normalHeaders    http.Header
+	preflightHeaders http.Header
 }
 
 func newCors(config Config) *cors {
@@ -20,11 +20,11 @@ func newCors(config Config) *cors {
 		panic(err.Error())
 	}
 	return &cors{
-		allowedOriginFunc: config.AllowOriginFunc,
-		allowAllOrigins:   config.AllowAllOrigins,
-		allowedOrigins:    normalize(config.AllowedOrigins),
-		normalHeaders:     generateNormalHeaders(config),
-		preflightHeaders:  generatePreflightHeaders(config),
+		allowOriginFunc:  config.AllowOriginFunc,
+		allowAllOrigins:  config.AllowAllOrigins,
+		allowOrigins:     normalize(config.AllowOrigins),
+		normalHeaders:    generateNormalHeaders(config),
+		preflightHeaders: generatePreflightHeaders(config),
 	}
 }
 
@@ -54,13 +54,13 @@ func (cors *cors) validateOrigin(origin string) bool {
 	if cors.allowAllOrigins {
 		return true
 	}
-	for _, value := range cors.allowedOrigins {
+	for _, value := range cors.allowOrigins {
 		if value == origin {
 			return true
 		}
 	}
-	if cors.allowedOriginFunc != nil {
-		return cors.allowedOriginFunc(origin)
+	if cors.allowOriginFunc != nil {
+		return cors.allowOriginFunc(origin)
 	}
 	return false
 }

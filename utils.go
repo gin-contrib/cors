@@ -12,9 +12,9 @@ func generateNormalHeaders(c Config) http.Header {
 	if c.AllowCredentials {
 		headers.Set("Access-Control-Allow-Credentials", "true")
 	}
-	if len(c.ExposedHeaders) > 0 {
-		exposedHeaders := normalize(c.ExposedHeaders)
-		headers.Set("Access-Control-Expose-Headers", strings.Join(exposedHeaders, ", "))
+	if len(c.ExposeHeaders) > 0 {
+		exposeHeaders := normalize(c.ExposeHeaders)
+		headers.Set("Access-Control-Expose-Headers", strings.Join(exposeHeaders, ","))
 	}
 	if c.AllowAllOrigins {
 		headers.Set("Access-Control-Allow-Origin", "*")
@@ -29,14 +29,14 @@ func generatePreflightHeaders(c Config) http.Header {
 	if c.AllowCredentials {
 		headers.Set("Access-Control-Allow-Credentials", "true")
 	}
-	if len(c.AllowedMethods) > 0 {
-		allowedMethods := normalize(c.AllowedMethods)
-		value := strings.Join(allowedMethods, ", ")
+	if len(c.AllowMethods) > 0 {
+		allowMethods := normalize(c.AllowMethods)
+		value := strings.Join(allowMethods, ",")
 		headers.Set("Access-Control-Allow-Methods", value)
 	}
-	if len(c.AllowedHeaders) > 0 {
-		allowedHeaders := normalize(c.AllowedHeaders)
-		value := strings.Join(allowedHeaders, ", ")
+	if len(c.AllowHeaders) > 0 {
+		allowHeaders := normalize(c.AllowHeaders)
+		value := strings.Join(allowHeaders, ",")
 		headers.Set("Access-Control-Allow-Headers", value)
 	}
 	if c.MaxAge > time.Duration(0) {
