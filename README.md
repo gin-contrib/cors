@@ -59,6 +59,7 @@ func main() {
 ###Default() allows all origins
 
 ```go
+func main() {
     router := gin.Default()
     // same as
     // config := cors.DefaultConfig()
@@ -66,6 +67,7 @@ func main() {
     // router.Use(cors.Default())
     router.Use(cors.Default())
     router.Run()
+}
 ```
 
 

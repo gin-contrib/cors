@@ -39,6 +39,26 @@ func performRequest(r http.Handler, method, origin string) *httptest.ResponseRec
 	return w
 }
 
+func TestConfigAddAllow(t *testing.T) {
+	config := Config{}
+	config.AddAllowMethods("POST")
+	config.AddAllowMethods("GET", "PUT")
+	config.AddExposeHeaders()
+
+	config.AddAllowHeaders("Some", " cool")
+	config.AddAllowHeaders("header")
+	config.AddExposeHeaders()
+
+	config.AddExposeHeaders()
+	config.AddExposeHeaders("exposed", "header")
+	config.AddExposeHeaders("hey")
+
+	assert.Equal(t, config.AllowMethods, []string{"POST", "GET", "PUT"})
+	assert.Equal(t, config.AllowHeaders, []string{"Some", " cool", "header"})
+	assert.Equal(t, config.ExposeHeaders, []string{"exposed", "header", "hey"})
+
+}
+
 func TestBadConfig(t *testing.T) {
 	assert.Panics(t, func() { New(Config{}) })
 	assert.Panics(t, func() {
