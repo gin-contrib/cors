@@ -64,7 +64,7 @@ func main() {
     // same as
     // config := cors.DefaultConfig()
     // config.AllowAllOrigins = true
-    // router.Use(cors.Default())
+    // router.Use(cors.New(config))
     router.Use(cors.Default())
     router.Run()
 }
