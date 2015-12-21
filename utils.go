@@ -30,8 +30,7 @@ func generatePreflightHeaders(c Config) http.Header {
 		headers.Set("Access-Control-Allow-Credentials", "true")
 	}
 	if len(c.AllowMethods) > 0 {
-		allowMethods := normalize(c.AllowMethods)
-		value := strings.Join(allowMethods, ",")
+		value := strings.Join(c.AllowMethods, ",")
 		headers.Set("Access-Control-Allow-Methods", value)
 	}
 	if len(c.AllowHeaders) > 0 {
