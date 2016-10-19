@@ -1,9 +1,17 @@
 # CORS gin's middleware
+
+[![Build Status](https://travis-ci.org/gin-contrib/cors.svg)](https://travis-ci.org/gin-contrib/cors)
+[![codecov](https://codecov.io/gh/gin-contrib/cors/branch/master/graph/badge.svg)](https://codecov.io/gh/gin-contrib/cors)
+[![Go Report Card](https://goreportcard.com/badge/github.com/gin-contrib/cors)](https://goreportcard.com/report/github.com/gin-contrib/cors)
+[![GoDoc](https://godoc.org/github.com/gin-contrib/cors?status.svg)](https://godoc.org/github.com/gin-contrib/cors)
+[![Join the chat at https://gitter.im/gin-gonic/gin](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/gin-gonic/gin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+
 Gin middleware/handler to enable CORS support.
 
 ## Usage
 
-###Canonical example:
+### Canonical example:
 
 ```go
 package main
@@ -37,38 +45,35 @@ func main() {
 }
 ```
 
-###Using DefaultConfig as start point
+### Using DefaultConfig as start point
 
 ```go
 func main() {
-    router := gin.Default()
-    // - No origin allowed by default
-    // - GET,POST, PUT, HEAD methods
-    // - Credentials share disabled
-    // - Preflight requests cached for 12 hours
-    config := cors.DefaultConfig()
-    config.AllowOrigins = []string{"http://google.com"}
-    config.AddAllowOrigins("http://facebook.com")
-    // config.AllowOrigins == []string{"http://google.com", "http://facebook.com"}
+	router := gin.Default()
+	// - No origin allowed by default
+	// - GET,POST, PUT, HEAD methods
+	// - Credentials share disabled
+	// - Preflight requests cached for 12 hours
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://google.com"}
+	config.AddAllowOrigins("http://facebook.com")
+	// config.AllowOrigins == []string{"http://google.com", "http://facebook.com"}
 
-    router.Use(cors.New(config))
-    router.Run()
+	router.Use(cors.New(config))
+	router.Run()
 }
 ```
 
-###Default() allows all origins
+### Default() allows all origins
 
 ```go
 func main() {
-    router := gin.Default()
-    // same as
-    // config := cors.DefaultConfig()
-    // config.AllowAllOrigins = true
-    // router.Use(cors.New(config))
-    router.Use(cors.Default())
-    router.Run()
+	router := gin.Default()
+	// same as
+	// config := cors.DefaultConfig()
+	// config.AllowAllOrigins = true
+	// router.Use(cors.New(config))
+	router.Use(cors.Default())
+	router.Run()
 }
 ```
-
-
-
