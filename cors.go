@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Config represents all available options for the middleware.
 type Config struct {
 	AllowAllOrigins bool
 
@@ -44,18 +45,22 @@ type Config struct {
 	MaxAge time.Duration
 }
 
+// AddAllowMethods is allowed to add custom methods
 func (c *Config) AddAllowMethods(methods ...string) {
 	c.AllowMethods = append(c.AllowMethods, methods...)
 }
 
+// AddAllowHeaders is allowed to add custom headers
 func (c *Config) AddAllowHeaders(headers ...string) {
 	c.AllowHeaders = append(c.AllowHeaders, headers...)
 }
 
+// AddExposeHeaders is allowed to add custom expose headers
 func (c *Config) AddExposeHeaders(headers ...string) {
 	c.ExposeHeaders = append(c.ExposeHeaders, headers...)
 }
 
+// Validate is check configuration of user defined.
 func (c Config) Validate() error {
 	if c.AllowAllOrigins && (c.AllowOriginFunc != nil || len(c.AllowOrigins) > 0) {
 		return errors.New("conflict settings: all origins are allowed. AllowOriginFunc or AllowedOrigins is not needed")
@@ -71,6 +76,7 @@ func (c Config) Validate() error {
 	return nil
 }
 
+// DefaultConfig returns a generic default configuration mapped to localhost.
 func DefaultConfig() Config {
 	return Config{
 		AllowMethods:     []string{"GET", "POST", "PUT", "HEAD"},
@@ -80,12 +86,14 @@ func DefaultConfig() Config {
 	}
 }
 
+// Default returns the location middleware with default configuration.
 func Default() gin.HandlerFunc {
 	config := DefaultConfig()
 	config.AllowAllOrigins = true
 	return New(config)
 }
 
+// New returns the location middleware with user-defined custom configuration.
 func New(config Config) gin.HandlerFunc {
 	cors := newCors(config)
 	return func(c *gin.Context) {
