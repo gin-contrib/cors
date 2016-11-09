@@ -13,13 +13,13 @@ Gin middleware/handler to enable CORS support.
 
 ### Start using it
 
-1. Download and install it:
+Download and install it:
 
 ```sh
 $ go get gopkg.in/gin-contrib/cors.v1
 ```
 
-2. Import it in your code:
+Import it in your code:
 
 ```go
 import "gopkg.in/gin-contrib/cors.v1"
