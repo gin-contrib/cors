@@ -8,6 +8,7 @@ import (
 
 type cors struct {
 	allowAllOrigins  bool
+	allowCredentials bool
 	allowOriginFunc  func(string) bool
 	allowOrigins     []string
 	exposeHeaders    []string
@@ -22,6 +23,7 @@ func newCors(config Config) *cors {
 	return &cors{
 		allowOriginFunc:  config.AllowOriginFunc,
 		allowAllOrigins:  config.AllowAllOrigins,
+		allowCredentials: config.AllowCredentials,
 		allowOrigins:     normalize(config.AllowOrigins),
 		normalHeaders:    generateNormalHeaders(config),
 		preflightHeaders: generatePreflightHeaders(config),
@@ -46,7 +48,7 @@ func (cors *cors) applyCors(c *gin.Context) {
 		cors.handleNormal(c)
 	}
 
-	if !cors.allowAllOrigins {
+	if !cors.allowAllOrigins && !cors.allowCredentials {
 		c.Header("Access-Control-Allow-Origin", origin)
 	}
 }
