@@ -217,7 +217,7 @@ func TestPassesAllowedOrigins(t *testing.T) {
 		AllowMethods:     []string{" GeT ", "get", "post", "PUT  ", "Head", "POST"},
 		AllowHeaders:     []string{"Content-type", "timeStamp "},
 		ExposeHeaders:    []string{"Data", "x-User"},
-		AllowCredentials: true,
+		AllowCredentials: false,
 		MaxAge:           12 * time.Hour,
 		AllowOriginFunc: func(origin string) bool {
 			return origin == "http://github.com"
@@ -235,7 +235,7 @@ func TestPassesAllowedOrigins(t *testing.T) {
 	w = performRequest(router, "GET", "http://google.com")
 	assert.Equal(t, w.Body.String(), "get")
 	assert.Equal(t, w.Header().Get("Access-Control-Allow-Origin"), "http://google.com")
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Credentials"), "true")
+	assert.Equal(t, w.Header().Get("Access-Control-Allow-Credentials"), "")
 	assert.Equal(t, w.Header().Get("Access-Control-Expose-Headers"), "Data,X-User")
 
 	// deny CORS request
@@ -249,7 +249,7 @@ func TestPassesAllowedOrigins(t *testing.T) {
 	w = performRequest(router, "OPTIONS", "http://github.com")
 	assert.Equal(t, w.Code, 200)
 	assert.Equal(t, w.Header().Get("Access-Control-Allow-Origin"), "http://github.com")
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Credentials"), "true")
+	assert.Equal(t, w.Header().Get("Access-Control-Allow-Credentials"), "")
 	assert.Equal(t, w.Header().Get("Access-Control-Allow-Methods"), "GET,POST,PUT,HEAD")
 	assert.Equal(t, w.Header().Get("Access-Control-Allow-Headers"), "Content-Type,Timestamp")
 	assert.Equal(t, w.Header().Get("Access-Control-Max-Age"), "43200")
