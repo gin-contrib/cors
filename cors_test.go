@@ -238,6 +238,12 @@ func TestPassesAllowedOrigins(t *testing.T) {
 	assert.Equal(t, "", w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Equal(t, "Data,X-User", w.Header().Get("Access-Control-Expose-Headers"))
 
+	w = performRequest(router, "GET", "http://github.com")
+	assert.Equal(t, "get", w.Body.String())
+	assert.Equal(t, "http://github.com", w.Header().Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "", w.Header().Get("Access-Control-Allow-Credentials"))
+	assert.Equal(t, "Data,X-User", w.Header().Get("Access-Control-Expose-Headers"))
+
 	// deny CORS request
 	w = performRequest(router, "GET", "https://google.com")
 	assert.Equal(t, 403, w.Code)
@@ -280,6 +286,7 @@ func TestPassesAllowedAllOrigins(t *testing.T) {
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Empty(t, w.Header().Get("Access-Control-Expose-Headers"))
+	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 
 	// allowed CORS request
 	w = performRequest(router, "POST", "example.com")
@@ -287,6 +294,7 @@ func TestPassesAllowedAllOrigins(t *testing.T) {
 	assert.Equal(t, "*", w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Equal(t, "Data2,X-User2", w.Header().Get("Access-Control-Expose-Headers"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
+	assert.Equal(t, "*", w.Header().Get("Access-Control-Allow-Origin"))
 
 	// allowed CORS prefligh request
 	w = performRequest(router, "OPTIONS", "https://facebook.com")
