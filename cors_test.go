@@ -226,37 +226,37 @@ func TestPassesAllowedOrigins(t *testing.T) {
 
 	// no CORS request, origin == ""
 	w := performRequest(router, "GET", "")
-	assert.Equal(t, w.Body.String(), "get")
+	assert.Equal(t, "get", w.Body.String())
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Empty(t, w.Header().Get("Access-Control-Expose-Headers"))
 
 	// allowed CORS request
 	w = performRequest(router, "GET", "http://google.com")
-	assert.Equal(t, w.Body.String(), "get")
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Origin"), "http://google.com")
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Credentials"), "")
-	assert.Equal(t, w.Header().Get("Access-Control-Expose-Headers"), "Data,X-User")
+	assert.Equal(t, "get", w.Body.String())
+	assert.Equal(t, "http://google.com", w.Header().Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "", w.Header().Get("Access-Control-Allow-Credentials"))
+	assert.Equal(t, "Data,X-User", w.Header().Get("Access-Control-Expose-Headers"))
 
 	// deny CORS request
 	w = performRequest(router, "GET", "https://google.com")
-	assert.Equal(t, w.Code, 403)
+	assert.Equal(t, 403, w.Code)
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Empty(t, w.Header().Get("Access-Control-Expose-Headers"))
 
 	// allowed CORS prefligh request
 	w = performRequest(router, "OPTIONS", "http://github.com")
-	assert.Equal(t, w.Code, 200)
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Origin"), "http://github.com")
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Credentials"), "")
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Methods"), "GET,POST,PUT,HEAD")
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Headers"), "Content-Type,Timestamp")
-	assert.Equal(t, w.Header().Get("Access-Control-Max-Age"), "43200")
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, "http://github.com", w.Header().Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "", w.Header().Get("Access-Control-Allow-Credentials"))
+	assert.Equal(t, "GET,POST,PUT,HEAD", w.Header().Get("Access-Control-Allow-Methods"))
+	assert.Equal(t, "Content-Type,Timestamp", w.Header().Get("Access-Control-Allow-Headers"))
+	assert.Equal(t, "43200", w.Header().Get("Access-Control-Max-Age"))
 
 	// deny CORS prefligh request
 	w = performRequest(router, "OPTIONS", "http://example.com")
-	assert.Equal(t, w.Code, 403)
+	assert.Equal(t, 403, w.Code)
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Methods"))
@@ -276,24 +276,24 @@ func TestPassesAllowedAllOrigins(t *testing.T) {
 
 	// no CORS request, origin == ""
 	w := performRequest(router, "GET", "")
-	assert.Equal(t, w.Body.String(), "get")
+	assert.Equal(t, "get", w.Body.String())
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Empty(t, w.Header().Get("Access-Control-Expose-Headers"))
 
 	// allowed CORS request
 	w = performRequest(router, "POST", "example.com")
-	assert.Equal(t, w.Body.String(), "post")
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Origin"), "*")
-	assert.Equal(t, w.Header().Get("Access-Control-Expose-Headers"), "Data2,X-User2")
+	assert.Equal(t, "post", w.Body.String())
+	assert.Equal(t, "*", w.Header().Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "Data2,X-User2", w.Header().Get("Access-Control-Expose-Headers"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 
 	// allowed CORS prefligh request
 	w = performRequest(router, "OPTIONS", "https://facebook.com")
-	assert.Equal(t, w.Code, 200)
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Origin"), "*")
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Methods"), "PATCH,GET,POST")
-	assert.Equal(t, w.Header().Get("Access-Control-Allow-Headers"), "Content-Type,Testheader")
-	assert.Equal(t, w.Header().Get("Access-Control-Max-Age"), "36000")
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, "*", w.Header().Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "PATCH,GET,POST", w.Header().Get("Access-Control-Allow-Methods"))
+	assert.Equal(t, "Content-Type,Testheader", w.Header().Get("Access-Control-Allow-Headers"))
+	assert.Equal(t, "36000", w.Header().Get("Access-Control-Max-Age"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 }
