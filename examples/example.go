@@ -3,8 +3,8 @@ package main
 import (
 	"time"
 
-	"gopkg.in/gin-contrib/cors.v1"
-	"gopkg.in/gin-gonic/gin.v1"
+	"github.com/gin-gonic/gin"
+	cors "gopkg.in/gin-contrib/cors.v1"
 )
 
 func main() {
