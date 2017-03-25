@@ -48,7 +48,7 @@ func (cors *cors) applyCors(c *gin.Context) {
 		cors.handleNormal(c)
 	}
 
-	if !cors.allowAllOrigins {
+	if !cors.allowAllOrigins && !cors.allowCredentials {
 		c.Header("Access-Control-Allow-Origin", origin)
 	}
 }
