@@ -13,6 +13,7 @@ type Config struct {
 	AllowAllOrigins bool
 
 	// AllowedOrigins is a list of origins a cross-domain request can be executed from.
+	// If the special "*" value is present in the list, all origins will be allowed.
 	// Default value is []
 	AllowOrigins []string
 
