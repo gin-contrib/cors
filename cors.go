@@ -77,7 +77,7 @@ func (c Config) Validate() error {
 // DefaultConfig returns a generic default configuration mapped to localhost.
 func DefaultConfig() Config {
 	return Config{
-		AllowMethods:     []string{"GET", "POST", "PUT", "HEAD"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type"},
 		AllowCredentials: false,
 		MaxAge:           12 * time.Hour,
