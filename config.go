@@ -59,8 +59,13 @@ func (cors *cors) validateOrigin(origin string) bool {
 		return true
 	}
 	for _, value := range cors.allowOrigins {
-		match, _ := regexp.MatchString(value, origin)
-		if match {
+		r, _ := regexp.Compile("^\\/(.+)\\/[gimuy]?$")
+		if r.MatchString(value) {
+			match, _ := regexp.MatchString(r.FindStringSubmatch(value)[1], origin)
+			if match {
+				return true
+			}
+		} else if value == origin {
 			return true
 		}
 	}

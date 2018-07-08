@@ -67,7 +67,7 @@ func (c Config) Validate() error {
 		return errors.New("conflict settings: all origins disabled")
 	}
 	for _, origin := range c.AllowOrigins {
-		match, _ := regexp.MatchString("^https?\\??://", origin)
+		match, _ := regexp.MatchString("^/?https?\\??://", origin)
 		if origin != "*" && !match {
 			return errors.New("bad origin: origins must either be '*' or include http:// or https://")
 		}
