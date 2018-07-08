@@ -2,7 +2,7 @@ package cors
 
 import (
 	"errors"
-	"strings"
+	"regexp"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -67,7 +67,8 @@ func (c Config) Validate() error {
 		return errors.New("conflict settings: all origins disabled")
 	}
 	for _, origin := range c.AllowOrigins {
-		if origin != "*" && !strings.HasPrefix(origin, "http://") && !strings.HasPrefix(origin, "https://") {
+		match, _ := regexp.MatchString("^https?\\??://", origin)
+		if origin != "*" && !match {
 			return errors.New("bad origin: origins must either be '*' or include http:// or https://")
 		}
 	}

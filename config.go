@@ -2,6 +2,7 @@ package cors
 
 import (
 	"net/http"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 )
@@ -58,7 +59,8 @@ func (cors *cors) validateOrigin(origin string) bool {
 		return true
 	}
 	for _, value := range cors.allowOrigins {
-		if value == origin {
+		match, _ := regexp.MatchString(value, origin)
+		if match {
 			return true
 		}
 	}
