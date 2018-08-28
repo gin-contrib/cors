@@ -42,7 +42,14 @@ func performRequest(r http.Handler, method, origin string) *httptest.ResponseRec
 
 func performRequestWithHeaders(r http.Handler, method, origin string, headers map[string]string) *httptest.ResponseRecorder {
 	req, _ := http.NewRequest(method, "/", nil)
+	// go/net/http/request.go
+	// For incoming requests, the Host header is promoted to the
+	// Request.Host field and removed from the Header map.
 	for k, v := range headers {
+		if k == "Host" {
+			req.Host = v
+			continue
+		}
 		req.Header.Set(k, v)
 	}
 	if len(origin) > 0 {

@@ -36,7 +36,10 @@ func (cors *cors) applyCors(c *gin.Context) {
 		// request is not a CORS request
 		return
 	}
-	host := c.Request.Header.Get("Host")
+	// go/net/http/request.go
+	// For incoming requests, the Host header is promoted to the
+	// Request.Host field and removed from the Header map.
+	host := c.Request.Host
 	if origin == "http://"+host || origin == "https://"+host {
 		// request is not a CORS request but have origin header.
 		// for example, use fetch api
