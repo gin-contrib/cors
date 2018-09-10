@@ -16,6 +16,17 @@ type cors struct {
 	preflightHeaders http.Header
 }
 
+var (
+	AllowedSchemas = []string{
+		"http://",
+		"https://",
+		"chrome-extension://",
+		"safari-extension://",
+		"moz-extension://",
+		"ms-browser-extension://",
+	}
+)
+
 func newCors(config Config) *cors {
 	if err := config.Validate(); err != nil {
 		panic(err.Error())
@@ -37,11 +48,15 @@ func (cors *cors) applyCors(c *gin.Context) {
 		return
 	}
 	host := c.Request.Header.Get("Host")
-	if origin == "http://"+host || origin == "https://"+host {
-		// request is not a CORS request but have origin header.
-		// for example, use fetch api
-		return
+
+	for _, schema := range AllowedSchemas {
+		if origin != schema+host {
+			// request is not a CORS request but have origin header.
+			// for example, use fetch api
+			return
+		}
 	}
+
 	if !cors.validateOrigin(origin) {
 		c.AbortWithStatus(http.StatusForbidden)
 		return
