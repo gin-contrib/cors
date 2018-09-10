@@ -49,12 +49,10 @@ func (cors *cors) applyCors(c *gin.Context) {
 	}
 	host := c.Request.Header.Get("Host")
 
-	for _, schema := range AllowedSchemas {
-		if origin != schema+host {
-			// request is not a CORS request but have origin header.
-			// for example, use fetch api
-			return
-		}
+	if origin == "http://"+host || origin == "https://"+host {
+		// request is not a CORS request but have origin header.
+		// for example, use fetch api
+		return
 	}
 
 	if !cors.validateOrigin(origin) {

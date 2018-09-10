@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	)
+)
 
 // Config represents all available options for the middleware.
 type Config struct {
@@ -58,6 +58,22 @@ func (c *Config) AddExposeHeaders(headers ...string) {
 	c.ExposeHeaders = append(c.ExposeHeaders, headers...)
 }
 
+func (c Config) validateAllowedSchemas(origin string) bool {
+	var isSchemaAllowed bool
+
+	for _, schema := range AllowedSchemas {
+		if !strings.HasPrefix(origin, schema) {
+			isSchemaAllowed = false
+			continue
+		}
+
+		isSchemaAllowed = true
+		break
+	}
+
+	return isSchemaAllowed
+}
+
 // Validate is check configuration of user defined.
 func (c Config) Validate() error {
 	if c.AllowAllOrigins && (c.AllowOriginFunc != nil || len(c.AllowOrigins) > 0) {
@@ -67,19 +83,7 @@ func (c Config) Validate() error {
 		return errors.New("conflict settings: all origins disabled")
 	}
 	for _, origin := range c.AllowOrigins {
-		var isSchemaAllowed bool
-
-		for _, schema := range AllowedSchemas {
-			if origin != "*" && !strings.HasPrefix(origin, schema) {
-				isSchemaAllowed = false
-				continue
-			}
-
-			isSchemaAllowed = true
-			break
-		}
-
-		if !isSchemaAllowed{
+		if origin != "*" && !c.validateAllowedSchemas(origin) {
 			return errors.New("bad origin: origins must either be '*' or include " + strings.Join(AllowedSchemas, ","))
 		}
 	}
