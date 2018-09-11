@@ -60,11 +60,9 @@ func (c *Config) AddExposeHeaders(headers ...string) {
 
 func (c Config) validateAllowedSchemas(origin string) bool {
 	for _, schema := range AllowedSchemas {
-		if !strings.HasPrefix(origin, schema) {
-			continue
+		if strings.HasPrefix(origin, schema) {
+			return true
 		}
-
-		return true
 	}
 
 	return false

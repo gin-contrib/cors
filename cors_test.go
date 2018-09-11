@@ -209,6 +209,7 @@ func TestValidateOrigin(t *testing.T) {
 	assert.True(t, cors.validateOrigin("http://google.com"))
 	assert.True(t, cors.validateOrigin("https://google.com"))
 	assert.True(t, cors.validateOrigin("example.com"))
+	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id"))
 
 	cors = newCors(Config{
 		AllowOrigins: []string{"https://google.com", "https://github.com"},
