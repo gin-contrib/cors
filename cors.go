@@ -41,6 +41,9 @@ type Config struct {
 	// MaxAge indicates how long (in seconds) the results of a preflight request
 	// can be cached
 	MaxAge time.Duration
+
+	// Allows usage of popular browser extensions schemas
+	AllowBrowserExtensions bool
 }
 
 // AddAllowMethods is allowed to add custom methods
@@ -58,8 +61,19 @@ func (c *Config) AddExposeHeaders(headers ...string) {
 	c.ExposeHeaders = append(c.ExposeHeaders, headers...)
 }
 
+func (c Config) getAllowedSchemas() []string {
+	allowedSchemas := DefaultSchemas
+	if c.AllowBrowserExtensions {
+		allowedSchemas = append(allowedSchemas, ExtensionSchemas...)
+	}
+
+	return allowedSchemas
+}
+
 func (c Config) validateAllowedSchemas(origin string) bool {
-	for _, schema := range AllowedSchemas {
+	allowedSchemas := c.getAllowedSchemas()
+
+	for _, schema := range allowedSchemas {
 		if strings.HasPrefix(origin, schema) {
 			return true
 		}
@@ -78,7 +92,7 @@ func (c Config) Validate() error {
 	}
 	for _, origin := range c.AllowOrigins {
 		if origin != "*" && !c.validateAllowedSchemas(origin) {
-			return errors.New("bad origin: origins must either be '*' or include " + strings.Join(AllowedSchemas, ","))
+			return errors.New("bad origin: origins must either be '*' or include " + strings.Join(c.getAllowedSchemas(), ","))
 		}
 	}
 	return nil

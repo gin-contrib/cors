@@ -17,9 +17,11 @@ type cors struct {
 }
 
 var (
-	AllowedSchemas = []string{
+	DefaultSchemas = []string{
 		"http://",
 		"https://",
+	}
+	ExtensionSchemas = []string{
 		"chrome-extension://",
 		"safari-extension://",
 		"moz-extension://",

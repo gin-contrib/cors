@@ -216,6 +216,7 @@ func TestValidateOrigin(t *testing.T) {
 		AllowOriginFunc: func(origin string) bool {
 			return (origin == "http://news.ycombinator.com")
 		},
+		AllowBrowserExtensions:true,
 	})
 	assert.False(t, cors.validateOrigin("http://google.com"))
 	assert.True(t, cors.validateOrigin("https://google.com"))
@@ -223,6 +224,21 @@ func TestValidateOrigin(t *testing.T) {
 	assert.True(t, cors.validateOrigin("http://news.ycombinator.com"))
 	assert.False(t, cors.validateOrigin("http://example.com"))
 	assert.False(t, cors.validateOrigin("google.com"))
+	assert.False(t, cors.validateOrigin("chrome-extension://random-extension-id"))
+
+	cors = newCors(Config{
+		AllowOrigins: []string{"https://google.com", "https://github.com"},
+	})
+	assert.False(t, cors.validateOrigin("chrome-extension://random-extension-id"))
+
+	cors = newCors(Config{
+		AllowOrigins:[]string{"chrome-extension://random-extension-id", "safari-extension://another-ext-id"},
+		AllowBrowserExtensions:true,
+
+	})
+	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id"))
+	assert.True(t, cors.validateOrigin("safari-extension://another-ext-id"))
+	assert.False(t, cors.validateOrigin("moz-extension://ext-id-we-not-allow"))
 }
 
 func TestPassesAllowedOrigins(t *testing.T) {
