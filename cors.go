@@ -41,6 +41,9 @@ type Config struct {
 	// MaxAge indicates how long (in seconds) the results of a preflight request
 	// can be cached
 	MaxAge time.Duration
+
+	// Allows usage of popular browser extensions schemas
+	AllowBrowserExtensions bool
 }
 
 // AddAllowMethods is allowed to add custom methods
@@ -58,6 +61,27 @@ func (c *Config) AddExposeHeaders(headers ...string) {
 	c.ExposeHeaders = append(c.ExposeHeaders, headers...)
 }
 
+func (c Config) getAllowedSchemas() []string {
+	allowedSchemas := DefaultSchemas
+	if c.AllowBrowserExtensions {
+		allowedSchemas = append(allowedSchemas, ExtensionSchemas...)
+	}
+
+	return allowedSchemas
+}
+
+func (c Config) validateAllowedSchemas(origin string) bool {
+	allowedSchemas := c.getAllowedSchemas()
+
+	for _, schema := range allowedSchemas {
+		if strings.HasPrefix(origin, schema) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Validate is check configuration of user defined.
 func (c Config) Validate() error {
 	if c.AllowAllOrigins && (c.AllowOriginFunc != nil || len(c.AllowOrigins) > 0) {
@@ -67,8 +91,8 @@ func (c Config) Validate() error {
 		return errors.New("conflict settings: all origins disabled")
 	}
 	for _, origin := range c.AllowOrigins {
-		if origin != "*" && !strings.HasPrefix(origin, "http://") && !strings.HasPrefix(origin, "https://") {
-			return errors.New("bad origin: origins must either be '*' or include http:// or https://")
+		if origin != "*" && !c.validateAllowedSchemas(origin) {
+			return errors.New("bad origin: origins must either be '*' or include " + strings.Join(c.getAllowedSchemas(), ","))
 		}
 	}
 	return nil
