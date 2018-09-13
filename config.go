@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-)
+		)
 
 type cors struct {
 	allowAllOrigins  bool
@@ -14,6 +14,7 @@ type cors struct {
 	exposeHeaders    []string
 	normalHeaders    http.Header
 	preflightHeaders http.Header
+	wildcardOrigins  [][]string
 }
 
 var (
@@ -33,6 +34,7 @@ func newCors(config Config) *cors {
 	if err := config.Validate(); err != nil {
 		panic(err.Error())
 	}
+
 	return &cors{
 		allowOriginFunc:  config.AllowOriginFunc,
 		allowAllOrigins:  config.AllowAllOrigins,
@@ -40,6 +42,7 @@ func newCors(config Config) *cors {
 		allowOrigins:     normalize(config.AllowOrigins),
 		normalHeaders:    generateNormalHeaders(config),
 		preflightHeaders: generatePreflightHeaders(config),
+		wildcardOrigins:  config.parseWildcardRules(),
 	}
 }
 

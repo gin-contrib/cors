@@ -42,6 +42,9 @@ type Config struct {
 	// can be cached
 	MaxAge time.Duration
 
+	// Allows to add origins like http://some-domain/*, https://api.* or http://some.*.subdomain.com
+	AllowWildcard bool
+
 	// Allows usage of popular browser extensions schemas
 	AllowBrowserExtensions bool
 }
@@ -96,6 +99,39 @@ func (c Config) Validate() error {
 		}
 	}
 	return nil
+}
+
+func (c Config) parseWildcardRules() [][]string {
+	var wRules [][]string
+
+	if !c.AllowWildcard {
+		return wRules
+	}
+
+	for _, o := range c.AllowOrigins {
+		if !strings.Contains(o, "*") {
+			continue
+		}
+
+		if c := strings.Count(o, "*"); c > 1 {
+			panic(errors.New("only one * allowed").Error())
+		}
+
+		i := strings.Index(o, "*")
+		if i == 0 {
+			wRules = append(wRules, []string{"*", o[1:]})
+			continue
+		}
+		if i == len(o) {
+			wRules = append(wRules, []string{o[:i-1], "*"})
+			continue
+		}
+		if i != 0 && i != len(o) {
+			wRules = append(wRules, []string{o[:i], o[i:]})
+		}
+	}
+
+	return wRules
 }
 
 // DefaultConfig returns a generic default configuration mapped to localhost.
