@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-)
+	)
 
 // Config represents all available options for the middleware.
 type Config struct {
@@ -94,8 +94,8 @@ func (c Config) Validate() error {
 		return errors.New("conflict settings: all origins disabled")
 	}
 	for _, origin := range c.AllowOrigins {
-		if origin != "*" && !c.validateAllowedSchemas(origin) {
-			return errors.New("bad origin: origins must either be '*' or include " + strings.Join(c.getAllowedSchemas(), ","))
+		if !strings.Contains(origin, "*") && !c.validateAllowedSchemas(origin) {
+			return errors.New("bad origin: origins must contain '*' or include " + strings.Join(c.getAllowedSchemas(), ","))
 		}
 	}
 	return nil
@@ -114,7 +114,7 @@ func (c Config) parseWildcardRules() [][]string {
 		}
 
 		if c := strings.Count(o, "*"); c > 1 {
-			panic(errors.New("only one * allowed").Error())
+			panic(errors.New("only one * is allowed").Error())
 		}
 
 		i := strings.Index(o, "*")
@@ -127,7 +127,7 @@ func (c Config) parseWildcardRules() [][]string {
 			continue
 		}
 		if i != 0 && i != len(o) {
-			wRules = append(wRules, []string{o[:i], o[i:]})
+			wRules = append(wRules, []string{o[:i], o[i+1:]})
 		}
 	}
 

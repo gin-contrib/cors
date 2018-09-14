@@ -4,7 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-		)
+	"strings"
+	)
 
 type cors struct {
 	allowAllOrigins  bool
@@ -77,6 +78,22 @@ func (cors *cors) applyCors(c *gin.Context) {
 	}
 }
 
+func (cors *cors) validateWildcardOrigin(origin string) bool {
+	for _, w := range cors.wildcardOrigins {
+		if w[0] == "*" && strings.HasSuffix(origin, w[1]) {
+			return true
+		}
+		if w[1] == "*" && strings.HasPrefix(origin, w[0]) {
+			return true
+		}
+		if strings.HasPrefix(origin, w[0]) && strings.HasSuffix(origin, w[1]) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (cors *cors) validateOrigin(origin string) bool {
 	if cors.allowAllOrigins {
 		return true
@@ -85,6 +102,9 @@ func (cors *cors) validateOrigin(origin string) bool {
 		if value == origin {
 			return true
 		}
+	}
+	if len(cors.wildcardOrigins) > 0 && cors.validateWildcardOrigin(origin) {
+		return true
 	}
 	if cors.allowOriginFunc != nil {
 		return cors.allowOriginFunc(origin)
