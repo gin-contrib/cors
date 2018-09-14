@@ -232,12 +232,17 @@ func TestValidateOrigin(t *testing.T) {
 	assert.False(t, cors.validateOrigin("chrome-extension://random-extension-id"))
 
 	cors = newCors(Config{
-		AllowOrigins:           []string{"chrome-extension://random-extension-id", "safari-extension://another-ext-id"},
+		AllowOrigins:           []string{"chrome-extension://*", "safari-extension://my-extension-*-app", "*.some-domain.com"},
 		AllowBrowserExtensions: true,
+		AllowWildcard:true,
 	})
 	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id"))
-	assert.True(t, cors.validateOrigin("safari-extension://another-ext-id"))
+	assert.True(t, cors.validateOrigin("chrome-extension://another-one"))
+	assert.True(t, cors.validateOrigin("safari-extension://my-extension-one-app"))
+	assert.True(t, cors.validateOrigin("safari-extension://my-extension-two-app"))
 	assert.False(t, cors.validateOrigin("moz-extension://ext-id-we-not-allow"))
+	assert.True(t, cors.validateOrigin("http://api.some-domain.com"))
+	assert.False(t, cors.validateOrigin("http://api.another-domain.com"))
 }
 
 func TestPassesAllowedOrigins(t *testing.T) {
