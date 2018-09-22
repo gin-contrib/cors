@@ -29,6 +29,13 @@ var (
 		"moz-extension://",
 		"ms-browser-extension://",
 	}
+	FileSchemas = []string{
+		"file://",
+	}
+	WebSocketSchemas = []string{
+		"ws://",
+		"wss://",
+	}
 )
 
 func newCors(config Config) *cors {

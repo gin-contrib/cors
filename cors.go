@@ -47,6 +47,12 @@ type Config struct {
 
 	// Allows usage of popular browser extensions schemas
 	AllowBrowserExtensions bool
+
+	// Allows usage of WebSocket protocol
+	AllowWebSockets bool
+
+	// Allows usage of file:// schema (dangerous!) use it only when you 100% sure it's needed
+	AllowFiles bool
 }
 
 // AddAllowMethods is allowed to add custom methods
@@ -69,19 +75,22 @@ func (c Config) getAllowedSchemas() []string {
 	if c.AllowBrowserExtensions {
 		allowedSchemas = append(allowedSchemas, ExtensionSchemas...)
 	}
-
+	if c.AllowWebSockets {
+		allowedSchemas = append(allowedSchemas, WebSocketSchemas...)
+	}
+	if c.AllowFiles {
+		allowedSchemas = append(allowedSchemas, FileSchemas...)
+	}
 	return allowedSchemas
 }
 
 func (c Config) validateAllowedSchemas(origin string) bool {
 	allowedSchemas := c.getAllowedSchemas()
-
 	for _, schema := range allowedSchemas {
 		if strings.HasPrefix(origin, schema) {
 			return true
 		}
 	}
-
 	return false
 }
 
