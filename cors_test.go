@@ -216,7 +216,7 @@ func TestValidateOrigin(t *testing.T) {
 		AllowOriginFunc: func(origin string) bool {
 			return (origin == "http://news.ycombinator.com")
 		},
-		AllowBrowserExtensions:true,
+		AllowBrowserExtensions: true,
 	})
 	assert.False(t, cors.validateOrigin("http://google.com"))
 	assert.True(t, cors.validateOrigin("https://google.com"))
@@ -230,15 +230,26 @@ func TestValidateOrigin(t *testing.T) {
 		AllowOrigins: []string{"https://google.com", "https://github.com"},
 	})
 	assert.False(t, cors.validateOrigin("chrome-extension://random-extension-id"))
+	assert.False(t, cors.validateOrigin("file://some-dangerous-file.js"))
+	assert.False(t, cors.validateOrigin("wss://socket-connection"))
 
 	cors = newCors(Config{
-		AllowOrigins:[]string{"chrome-extension://random-extension-id", "safari-extension://another-ext-id"},
-		AllowBrowserExtensions:true,
-
+		AllowOrigins:           []string{"chrome-extension://random-extension-id", "safari-extension://another-ext-id"},
+		AllowBrowserExtensions: true,
 	})
 	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id"))
 	assert.True(t, cors.validateOrigin("safari-extension://another-ext-id"))
 	assert.False(t, cors.validateOrigin("moz-extension://ext-id-we-not-allow"))
+
+	cors = newCors(Config{
+		AllowOrigins:    []string{"file://safe-file.js", "wss://some-session-layer-connection"},
+		AllowFiles:      true,
+		AllowWebSockets: true,
+	})
+	assert.True(t, cors.validateOrigin("file://safe-file.js"))
+	assert.False(t, cors.validateOrigin("file://some-dangerous-file.js"))
+	assert.True(t, cors.validateOrigin("wss://some-session-layer-connection"))
+	assert.False(t, cors.validateOrigin("ws://not-what-we-expected"))
 }
 
 func TestPassesAllowedOrigins(t *testing.T) {
