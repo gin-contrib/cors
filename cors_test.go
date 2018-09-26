@@ -19,13 +19,13 @@ func newTestRouter(config Config) *gin.Engine {
 	router := gin.New()
 	router.Use(New(config))
 	router.GET("/", func(c *gin.Context) {
-		c.String(200, "get")
+		c.String(http.StatusOK, "get")
 	})
 	router.POST("/", func(c *gin.Context) {
-		c.String(200, "post")
+		c.String(http.StatusOK, "post")
 	})
 	router.PATCH("/", func(c *gin.Context) {
-		c.String(200, "patch")
+		c.String(http.StatusOK, "patch")
 	})
 	return router
 }
@@ -294,14 +294,14 @@ func TestPassesAllowedOrigins(t *testing.T) {
 
 	// deny CORS request
 	w = performRequest(router, "GET", "https://google.com")
-	assert.Equal(t, 403, w.Code)
+	assert.Equal(t, http.StatusForbidden, w.Code)
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Empty(t, w.Header().Get("Access-Control-Expose-Headers"))
 
 	// allowed CORS prefligh request
 	w = performRequest(router, "OPTIONS", "http://github.com")
-	assert.Equal(t, 204, w.Code)
+	assert.Equal(t, http.StatusNoContent, w.Code)
 	assert.Equal(t, "http://github.com", w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Equal(t, "", w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Equal(t, "GET,POST,PUT,HEAD", w.Header().Get("Access-Control-Allow-Methods"))
@@ -310,7 +310,7 @@ func TestPassesAllowedOrigins(t *testing.T) {
 
 	// deny CORS prefligh request
 	w = performRequest(router, "OPTIONS", "http://example.com")
-	assert.Equal(t, 403, w.Code)
+	assert.Equal(t, http.StatusForbidden, w.Code)
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Methods"))
@@ -346,7 +346,7 @@ func TestPassesAllowedAllOrigins(t *testing.T) {
 
 	// allowed CORS prefligh request
 	w = performRequest(router, "OPTIONS", "https://facebook.com")
-	assert.Equal(t, 204, w.Code)
+	assert.Equal(t, http.StatusNoContent, w.Code)
 	assert.Equal(t, "*", w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Equal(t, "PATCH,GET,POST", w.Header().Get("Access-Control-Allow-Methods"))
 	assert.Equal(t, "Content-Type,Testheader", w.Header().Get("Access-Control-Allow-Headers"))

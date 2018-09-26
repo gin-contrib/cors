@@ -71,7 +71,7 @@ func (cors *cors) applyCors(c *gin.Context) {
 
 	if c.Request.Method == "OPTIONS" {
 		cors.handlePreflight(c)
-		defer c.AbortWithStatus(204) // Using 204 is better than 200 when the request status is OPTIONS
+		defer c.AbortWithStatus(http.StatusNoContent) // Using 204 is better than 200 when the request status is OPTIONS
 	} else {
 		cors.handleNormal(c)
 	}
