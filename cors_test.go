@@ -301,7 +301,7 @@ func TestPassesAllowedOrigins(t *testing.T) {
 
 	// allowed CORS prefligh request
 	w = performRequest(router, "OPTIONS", "http://github.com")
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, 204, w.Code)
 	assert.Equal(t, "http://github.com", w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Equal(t, "", w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Equal(t, "GET,POST,PUT,HEAD", w.Header().Get("Access-Control-Allow-Methods"))
@@ -346,7 +346,7 @@ func TestPassesAllowedAllOrigins(t *testing.T) {
 
 	// allowed CORS prefligh request
 	w = performRequest(router, "OPTIONS", "https://facebook.com")
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, 204, w.Code)
 	assert.Equal(t, "*", w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Equal(t, "PATCH,GET,POST", w.Header().Get("Access-Control-Allow-Methods"))
 	assert.Equal(t, "Content-Type,Testheader", w.Header().Get("Access-Control-Allow-Headers"))
