@@ -2,6 +2,7 @@ package cors
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,6 +15,7 @@ type cors struct {
 	exposeHeaders    []string
 	normalHeaders    http.Header
 	preflightHeaders http.Header
+	wildcardOrigins  [][]string
 }
 
 var (
@@ -40,6 +42,7 @@ func newCors(config Config) *cors {
 	if err := config.Validate(); err != nil {
 		panic(err.Error())
 	}
+
 	return &cors{
 		allowOriginFunc:  config.AllowOriginFunc,
 		allowAllOrigins:  config.AllowAllOrigins,
@@ -47,6 +50,7 @@ func newCors(config Config) *cors {
 		allowOrigins:     normalize(config.AllowOrigins),
 		normalHeaders:    generateNormalHeaders(config),
 		preflightHeaders: generatePreflightHeaders(config),
+		wildcardOrigins:  config.parseWildcardRules(),
 	}
 }
 
@@ -81,6 +85,22 @@ func (cors *cors) applyCors(c *gin.Context) {
 	}
 }
 
+func (cors *cors) validateWildcardOrigin(origin string) bool {
+	for _, w := range cors.wildcardOrigins {
+		if w[0] == "*" && strings.HasSuffix(origin, w[1]) {
+			return true
+		}
+		if w[1] == "*" && strings.HasPrefix(origin, w[0]) {
+			return true
+		}
+		if strings.HasPrefix(origin, w[0]) && strings.HasSuffix(origin, w[1]) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (cors *cors) validateOrigin(origin string) bool {
 	if cors.allowAllOrigins {
 		return true
@@ -89,6 +109,9 @@ func (cors *cors) validateOrigin(origin string) bool {
 		if value == origin {
 			return true
 		}
+	}
+	if len(cors.wildcardOrigins) > 0 && cors.validateWildcardOrigin(origin) {
+		return true
 	}
 	if cors.allowOriginFunc != nil {
 		return cors.allowOriginFunc(origin)

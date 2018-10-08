@@ -42,6 +42,9 @@ type Config struct {
 	// can be cached
 	MaxAge time.Duration
 
+	// Allows to add origins like http://some-domain/*, https://api.* or http://some.*.subdomain.com
+	AllowWildcard bool
+
 	// Allows usage of popular browser extensions schemas
 	AllowBrowserExtensions bool
 
@@ -100,11 +103,43 @@ func (c Config) Validate() error {
 		return errors.New("conflict settings: all origins disabled")
 	}
 	for _, origin := range c.AllowOrigins {
-		if origin != "*" && !c.validateAllowedSchemas(origin) {
-			return errors.New("bad origin: origins must either be '*' or include " + strings.Join(c.getAllowedSchemas(), ","))
+		if !strings.Contains(origin, "*") && !c.validateAllowedSchemas(origin) {
+			return errors.New("bad origin: origins must contain '*' or include " + strings.Join(c.getAllowedSchemas(), ","))
 		}
 	}
 	return nil
+}
+
+func (c Config) parseWildcardRules() [][]string {
+	var wRules [][]string
+
+	if !c.AllowWildcard {
+		return wRules
+	}
+
+	for _, o := range c.AllowOrigins {
+		if !strings.Contains(o, "*") {
+			continue
+		}
+
+		if c := strings.Count(o, "*"); c > 1 {
+			panic(errors.New("only one * is allowed").Error())
+		}
+
+		i := strings.Index(o, "*")
+		if i == 0 {
+			wRules = append(wRules, []string{"*", o[1:]})
+			continue
+		}
+		if i == (len(o) - 1) {
+			wRules = append(wRules, []string{o[:i-1], "*"})
+			continue
+		}
+
+		wRules = append(wRules, []string{o[:i], o[i+1:]})
+	}
+
+	return wRules
 }
 
 // DefaultConfig returns a generic default configuration mapped to localhost.

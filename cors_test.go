@@ -234,12 +234,17 @@ func TestValidateOrigin(t *testing.T) {
 	assert.False(t, cors.validateOrigin("wss://socket-connection"))
 
 	cors = newCors(Config{
-		AllowOrigins:           []string{"chrome-extension://random-extension-id", "safari-extension://another-ext-id"},
+		AllowOrigins:           []string{"chrome-extension://*", "safari-extension://my-extension-*-app", "*.some-domain.com"},
 		AllowBrowserExtensions: true,
+		AllowWildcard:          true,
 	})
 	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id"))
-	assert.True(t, cors.validateOrigin("safari-extension://another-ext-id"))
+	assert.True(t, cors.validateOrigin("chrome-extension://another-one"))
+	assert.True(t, cors.validateOrigin("safari-extension://my-extension-one-app"))
+	assert.True(t, cors.validateOrigin("safari-extension://my-extension-two-app"))
 	assert.False(t, cors.validateOrigin("moz-extension://ext-id-we-not-allow"))
+	assert.True(t, cors.validateOrigin("http://api.some-domain.com"))
+	assert.False(t, cors.validateOrigin("http://api.another-domain.com"))
 
 	cors = newCors(Config{
 		AllowOrigins:    []string{"file://safe-file.js", "wss://some-session-layer-connection"},
@@ -352,4 +357,45 @@ func TestPassesAllowedAllOrigins(t *testing.T) {
 	assert.Equal(t, "Content-Type,Testheader", w.Header().Get("Access-Control-Allow-Headers"))
 	assert.Equal(t, "36000", w.Header().Get("Access-Control-Max-Age"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
+
+}
+
+func TestWildcard(t *testing.T) {
+	router := newTestRouter(Config{
+		AllowOrigins:  []string{"https://*.github.com", "https://api.*", "http://*", "https://facebook.com", "*.golang.org"},
+		AllowMethods:  []string{"GET"},
+		AllowWildcard: true,
+	})
+
+	w := performRequest(router, "GET", "https://gist.github.com")
+	assert.Equal(t, 200, w.Code)
+
+	w = performRequest(router, "GET", "https://api.github.com/v1/users")
+	assert.Equal(t, 200, w.Code)
+
+	w = performRequest(router, "GET", "https://giphy.com/")
+	assert.Equal(t, 403, w.Code)
+
+	w = performRequest(router, "GET", "http://hard-to-find-http-example.com")
+	assert.Equal(t, 200, w.Code)
+
+	w = performRequest(router, "GET", "https://facebook.com")
+	assert.Equal(t, 200, w.Code)
+
+	w = performRequest(router, "GET", "https://something.golang.org")
+	assert.Equal(t, 200, w.Code)
+
+	w = performRequest(router, "GET", "https://something.go.org")
+	assert.Equal(t, 403, w.Code)
+
+	router = newTestRouter(Config{
+		AllowOrigins: []string{"https://github.com", "https://facebook.com"},
+		AllowMethods: []string{"GET"},
+	})
+
+	w = performRequest(router, "GET", "https://gist.github.com")
+	assert.Equal(t, 403, w.Code)
+
+	w = performRequest(router, "GET", "https://github.com")
+	assert.Equal(t, 200, w.Code)
 }
