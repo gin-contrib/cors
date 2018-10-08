@@ -2,9 +2,9 @@ package cors
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
-	"strings"
 )
 
 type cors struct {
