@@ -236,7 +236,7 @@ func TestValidateOrigin(t *testing.T) {
 	cors = newCors(Config{
 		AllowOrigins:           []string{"chrome-extension://*", "safari-extension://my-extension-*-app", "*.some-domain.com"},
 		AllowBrowserExtensions: true,
-		AllowWildcard:true,
+		AllowWildcard:          true,
 	})
 	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id"))
 	assert.True(t, cors.validateOrigin("chrome-extension://another-one"))

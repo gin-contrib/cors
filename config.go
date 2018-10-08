@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"strings"
-	)
+)
 
 type cors struct {
 	allowAllOrigins  bool
