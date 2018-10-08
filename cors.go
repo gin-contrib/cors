@@ -131,7 +131,7 @@ func (c Config) parseWildcardRules() [][]string {
 			wRules = append(wRules, []string{"*", o[1:]})
 			continue
 		}
-		if i == (len(o)-1) {
+		if i == (len(o) - 1) {
 			wRules = append(wRules, []string{o[:i-1], "*"})
 			continue
 		}
