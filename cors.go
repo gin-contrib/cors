@@ -95,7 +95,7 @@ func (c Config) validateAllowedSchemas(origin string) bool {
 }
 
 // Validate is check configuration of user defined.
-func (c Config) Validate() error {
+func (c *Config) Validate() error {
 	if c.AllowAllOrigins && (c.AllowOriginFunc != nil || len(c.AllowOrigins) > 0) {
 		return errors.New("conflict settings: all origins are allowed. AllowOriginFunc or AllowedOrigins is not needed")
 	}
@@ -103,7 +103,10 @@ func (c Config) Validate() error {
 		return errors.New("conflict settings: all origins disabled")
 	}
 	for _, origin := range c.AllowOrigins {
-		if !strings.Contains(origin, "*") && !c.validateAllowedSchemas(origin) {
+		if origin == "*" {
+			c.AllowAllOrigins = true
+			return nil
+		} else if !strings.Contains(origin, "*") && !c.validateAllowedSchemas(origin) {
 			return errors.New("bad origin: origins must contain '*' or include " + strings.Join(c.getAllowedSchemas(), ","))
 		}
 	}
