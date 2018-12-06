@@ -255,6 +255,14 @@ func TestValidateOrigin(t *testing.T) {
 	assert.False(t, cors.validateOrigin("file://some-dangerous-file.js"))
 	assert.True(t, cors.validateOrigin("wss://some-session-layer-connection"))
 	assert.False(t, cors.validateOrigin("ws://not-what-we-expected"))
+
+	cors = newCors(Config{
+		AllowOrigins: []string{"*"},
+	})
+	assert.True(t, cors.validateOrigin("http://google.com"))
+	assert.True(t, cors.validateOrigin("https://google.com"))
+	assert.True(t, cors.validateOrigin("example.com"))
+	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id"))
 }
 
 func TestPassesAllowedOrigins(t *testing.T) {
