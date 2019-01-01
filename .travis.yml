@@ -8,7 +8,13 @@ go:
   - 1.9.x
   - 1.10.x
   - 1.11.x
-  - tip
+  - master
+
+matrix:
+  fast_finish: true
+  include:
+  - go: 1.11.x
+    env: GO111MODULE=on
 
 script:
   - go test -v -covermode=atomic -coverprofile=coverage.out
