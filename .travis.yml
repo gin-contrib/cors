@@ -16,6 +16,8 @@ matrix:
   include:
   - go: 1.11.x
     env: GO111MODULE=on
+  - go: 1.12.x
+    env: GO111MODULE=on
 
 script:
   - go test -v -covermode=atomic -coverprofile=coverage.out
