@@ -12,21 +12,21 @@ import (
 type Config struct {
 	AllowAllOrigins bool
 
-	// AllowedOrigins is a list of origins a cross-domain request can be executed from.
+	// AllowOrigins is a list of origins a cross-domain request can be executed from.
 	// If the special "*" value is present in the list, all origins will be allowed.
 	// Default value is []
 	AllowOrigins []string
 
 	// AllowOriginFunc is a custom function to validate the origin. It take the origin
 	// as argument and returns true if allowed or false otherwise. If this option is
-	// set, the content of AllowedOrigins is ignored.
+	// set, the content of AllowOrigins is ignored.
 	AllowOriginFunc func(origin string) bool
 
-	// AllowedMethods is a list of methods the client is allowed to use with
+	// AllowMethods is a list of methods the client is allowed to use with
 	// cross-domain requests. Default value is simple methods (GET and POST)
 	AllowMethods []string
 
-	// AllowedHeaders is list of non simple headers the client is allowed to use with
+	// AllowHeaders is list of non simple headers the client is allowed to use with
 	// cross-domain requests.
 	AllowHeaders []string
 
@@ -97,7 +97,7 @@ func (c Config) validateAllowedSchemas(origin string) bool {
 // Validate is check configuration of user defined.
 func (c *Config) Validate() error {
 	if c.AllowAllOrigins && (c.AllowOriginFunc != nil || len(c.AllowOrigins) > 0) {
-		return errors.New("conflict settings: all origins are allowed. AllowOriginFunc or AllowedOrigins is not needed")
+		return errors.New("conflict settings: all origins are allowed. AllowOriginFunc or AllowOrigins is not needed")
 	}
 	if !c.AllowAllOrigins && c.AllowOriginFunc == nil && len(c.AllowOrigins) == 0 {
 		return errors.New("conflict settings: all origins disabled")

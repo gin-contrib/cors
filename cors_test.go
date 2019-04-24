@@ -175,7 +175,7 @@ func TestGeneratePreflightHeaders_AllowCredentials(t *testing.T) {
 	assert.Len(t, header, 2)
 }
 
-func TestGeneratePreflightHeaders_AllowedMethods(t *testing.T) {
+func TestGeneratePreflightHeaders_AllowMethods(t *testing.T) {
 	header := generatePreflightHeaders(Config{
 		AllowMethods: []string{"GET ", "post", "PUT", " put  "},
 	})
@@ -184,7 +184,7 @@ func TestGeneratePreflightHeaders_AllowedMethods(t *testing.T) {
 	assert.Len(t, header, 2)
 }
 
-func TestGeneratePreflightHeaders_AllowedHeaders(t *testing.T) {
+func TestGeneratePreflightHeaders_AllowHeaders(t *testing.T) {
 	header := generatePreflightHeaders(Config{
 		AllowHeaders: []string{"X-user", "Content-Type"},
 	})
@@ -265,7 +265,7 @@ func TestValidateOrigin(t *testing.T) {
 	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id"))
 }
 
-func TestPassesAllowedOrigins(t *testing.T) {
+func TestPassesAllowOrigins(t *testing.T) {
 	router := newTestRouter(Config{
 		AllowOrigins:     []string{"http://google.com"},
 		AllowMethods:     []string{" GeT ", "get", "post", "PUT  ", "Head", "POST"},
@@ -331,7 +331,7 @@ func TestPassesAllowedOrigins(t *testing.T) {
 	assert.Empty(t, w.Header().Get("Access-Control-Max-Age"))
 }
 
-func TestPassesAllowedAllOrigins(t *testing.T) {
+func TestPassesAllowAllOrigins(t *testing.T) {
 	router := newTestRouter(Config{
 		AllowAllOrigins:  true,
 		AllowMethods:     []string{" Patch ", "get", "post", "POST"},
