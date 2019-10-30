@@ -92,6 +92,21 @@ func TestBadConfig(t *testing.T) {
 			AllowOrigins: []string{"google.com"},
 		})
 	})
+	assert.Panics(t, func() {
+		New(Config{
+			AllowOrigins: []string{"/http://google.com"},
+		})
+	})
+	assert.Panics(t, func() {
+		New(Config{
+			AllowOrigins: []string{"http?://google.com"},
+		})
+	})
+	assert.Panics(t, func() {
+		New(Config{
+			AllowOrigins: []string{"http?://google.com/g"},
+		})
+	})
 }
 
 func TestNormalize(t *testing.T) {
