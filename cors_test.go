@@ -31,23 +31,20 @@ func newTestRouter(config Config) *gin.Engine {
 }
 
 func performRequest(r http.Handler, method, origin string) *httptest.ResponseRecorder {
-	req, _ := http.NewRequest(method, "/", nil)
-	if len(origin) > 0 {
-		req.Header.Set("Origin", origin)
-	}
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	return w
+	return performRequestWithHeaders(r, method, origin, http.Header{})
 }
 
-func performRequestWithHeaders(r http.Handler, method, origin string, headers map[string]string) *httptest.ResponseRecorder {
+func performRequestWithHeaders(r http.Handler, method, origin string, header http.Header) *httptest.ResponseRecorder {
 	req, _ := http.NewRequest(method, "/", nil)
-	for k, v := range headers {
-		req.Header.Set(k, v)
-	}
+	// From go/net/http/request.go:
+	// For incoming requests, the Host header is promoted to the
+	// Request.Host field and removed from the Header map.
+	req.Host = header.Get("Host")
+	header.Del("Host")
 	if len(origin) > 0 {
-		req.Header.Set("Origin", origin)
+		header.Set("Origin", origin)
 	}
+	req.Header = header
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	return w
@@ -286,7 +283,9 @@ func TestPassesAllowOrigins(t *testing.T) {
 	assert.Empty(t, w.Header().Get("Access-Control-Expose-Headers"))
 
 	// no CORS request, origin == host
-	w = performRequestWithHeaders(router, "GET", "http://facebook.com", map[string]string{"Host": "facebook.com"})
+	h := http.Header{}
+	h.Set("Host", "facebook.com")
+	w = performRequestWithHeaders(router, "GET", "http://facebook.com", h)
 	assert.Equal(t, "get", w.Body.String())
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
