@@ -20,7 +20,7 @@ type Config struct {
 	// AllowOriginFunc is a custom function to validate the origin. It take the origin
 	// as argument and returns true if allowed or false otherwise. If this option is
 	// set, the content of AllowOrigins is ignored.
-	AllowOriginFunc func(origin string) bool
+	AllowOriginFunc func(origin string, c *gin.Context) bool
 
 	// AllowMethods is a list of methods the client is allowed to use with
 	// cross-domain requests. Default value is simple methods (GET and POST)

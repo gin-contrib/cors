@@ -20,7 +20,7 @@ func main() {
 		AllowHeaders:     []string{"Origin"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
-		AllowOriginFunc: func(origin string) bool {
+		AllowOriginFunc: func(origin string, c *gin.Context) bool {
 			return origin == "https://github.com"
 		},
 		MaxAge: 12 * time.Hour,

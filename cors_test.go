@@ -81,7 +81,7 @@ func TestBadConfig(t *testing.T) {
 	assert.Panics(t, func() {
 		New(Config{
 			AllowAllOrigins: true,
-			AllowOriginFunc: func(origin string) bool { return false },
+			AllowOriginFunc: func(origin string, c *gin.Context) bool { return false },
 		})
 	})
 	assert.Panics(t, func() {
@@ -200,66 +200,67 @@ func TestGeneratePreflightHeaders_MaxAge(t *testing.T) {
 }
 
 func TestValidateOrigin(t *testing.T) {
+	emptyContext := &gin.Context{}
 	cors := newCors(Config{
 		AllowAllOrigins: true,
 	})
-	assert.True(t, cors.validateOrigin("http://google.com"))
-	assert.True(t, cors.validateOrigin("https://google.com"))
-	assert.True(t, cors.validateOrigin("example.com"))
-	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id"))
+	assert.True(t, cors.validateOrigin("http://google.com", emptyContext))
+	assert.True(t, cors.validateOrigin("https://google.com", emptyContext))
+	assert.True(t, cors.validateOrigin("example.com", emptyContext))
+	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id", emptyContext))
 
 	cors = newCors(Config{
 		AllowOrigins: []string{"https://google.com", "https://github.com"},
-		AllowOriginFunc: func(origin string) bool {
+		AllowOriginFunc: func(origin string, c *gin.Context) bool {
 			return (origin == "http://news.ycombinator.com")
 		},
 		AllowBrowserExtensions: true,
 	})
-	assert.False(t, cors.validateOrigin("http://google.com"))
-	assert.True(t, cors.validateOrigin("https://google.com"))
-	assert.True(t, cors.validateOrigin("https://github.com"))
-	assert.True(t, cors.validateOrigin("http://news.ycombinator.com"))
-	assert.False(t, cors.validateOrigin("http://example.com"))
-	assert.False(t, cors.validateOrigin("google.com"))
-	assert.False(t, cors.validateOrigin("chrome-extension://random-extension-id"))
+	assert.False(t, cors.validateOrigin("http://google.com", emptyContext))
+	assert.True(t, cors.validateOrigin("https://google.com", emptyContext))
+	assert.True(t, cors.validateOrigin("https://github.com", emptyContext))
+	assert.True(t, cors.validateOrigin("http://news.ycombinator.com", emptyContext))
+	assert.False(t, cors.validateOrigin("http://example.com", emptyContext))
+	assert.False(t, cors.validateOrigin("google.com", emptyContext))
+	assert.False(t, cors.validateOrigin("chrome-extension://random-extension-id", emptyContext))
 
 	cors = newCors(Config{
 		AllowOrigins: []string{"https://google.com", "https://github.com"},
 	})
-	assert.False(t, cors.validateOrigin("chrome-extension://random-extension-id"))
-	assert.False(t, cors.validateOrigin("file://some-dangerous-file.js"))
-	assert.False(t, cors.validateOrigin("wss://socket-connection"))
+	assert.False(t, cors.validateOrigin("chrome-extension://random-extension-id", emptyContext))
+	assert.False(t, cors.validateOrigin("file://some-dangerous-file.js", emptyContext))
+	assert.False(t, cors.validateOrigin("wss://socket-connection", emptyContext))
 
 	cors = newCors(Config{
 		AllowOrigins:           []string{"chrome-extension://*", "safari-extension://my-extension-*-app", "*.some-domain.com"},
 		AllowBrowserExtensions: true,
 		AllowWildcard:          true,
 	})
-	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id"))
-	assert.True(t, cors.validateOrigin("chrome-extension://another-one"))
-	assert.True(t, cors.validateOrigin("safari-extension://my-extension-one-app"))
-	assert.True(t, cors.validateOrigin("safari-extension://my-extension-two-app"))
-	assert.False(t, cors.validateOrigin("moz-extension://ext-id-we-not-allow"))
-	assert.True(t, cors.validateOrigin("http://api.some-domain.com"))
-	assert.False(t, cors.validateOrigin("http://api.another-domain.com"))
+	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id", emptyContext))
+	assert.True(t, cors.validateOrigin("chrome-extension://another-one", emptyContext))
+	assert.True(t, cors.validateOrigin("safari-extension://my-extension-one-app", emptyContext))
+	assert.True(t, cors.validateOrigin("safari-extension://my-extension-two-app", emptyContext))
+	assert.False(t, cors.validateOrigin("moz-extension://ext-id-we-not-allow", emptyContext))
+	assert.True(t, cors.validateOrigin("http://api.some-domain.com", emptyContext))
+	assert.False(t, cors.validateOrigin("http://api.another-domain.com", emptyContext))
 
 	cors = newCors(Config{
 		AllowOrigins:    []string{"file://safe-file.js", "wss://some-session-layer-connection"},
 		AllowFiles:      true,
 		AllowWebSockets: true,
 	})
-	assert.True(t, cors.validateOrigin("file://safe-file.js"))
-	assert.False(t, cors.validateOrigin("file://some-dangerous-file.js"))
-	assert.True(t, cors.validateOrigin("wss://some-session-layer-connection"))
-	assert.False(t, cors.validateOrigin("ws://not-what-we-expected"))
+	assert.True(t, cors.validateOrigin("file://safe-file.js", emptyContext))
+	assert.False(t, cors.validateOrigin("file://some-dangerous-file.js", emptyContext))
+	assert.True(t, cors.validateOrigin("wss://some-session-layer-connection", emptyContext))
+	assert.False(t, cors.validateOrigin("ws://not-what-we-expected", emptyContext))
 
 	cors = newCors(Config{
 		AllowOrigins: []string{"*"},
 	})
-	assert.True(t, cors.validateOrigin("http://google.com"))
-	assert.True(t, cors.validateOrigin("https://google.com"))
-	assert.True(t, cors.validateOrigin("example.com"))
-	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id"))
+	assert.True(t, cors.validateOrigin("http://google.com", emptyContext))
+	assert.True(t, cors.validateOrigin("https://google.com", emptyContext))
+	assert.True(t, cors.validateOrigin("example.com", emptyContext))
+	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id", emptyContext))
 }
 
 func TestPassesAllowOrigins(t *testing.T) {
@@ -270,7 +271,7 @@ func TestPassesAllowOrigins(t *testing.T) {
 		ExposeHeaders:    []string{"Data", "x-User"},
 		AllowCredentials: false,
 		MaxAge:           12 * time.Hour,
-		AllowOriginFunc: func(origin string) bool {
+		AllowOriginFunc: func(origin string, c *gin.Context) bool {
 			return origin == "http://github.com"
 		},
 	})

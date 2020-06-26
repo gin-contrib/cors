@@ -10,7 +10,7 @@ import (
 type cors struct {
 	allowAllOrigins  bool
 	allowCredentials bool
-	allowOriginFunc  func(string) bool
+	allowOriginFunc  func(string, *gin.Context) bool
 	allowOrigins     []string
 	exposeHeaders    []string
 	normalHeaders    http.Header
@@ -68,7 +68,7 @@ func (cors *cors) applyCors(c *gin.Context) {
 		return
 	}
 
-	if !cors.validateOrigin(origin) {
+	if !cors.validateOrigin(origin, c) {
 		c.AbortWithStatus(http.StatusForbidden)
 		return
 	}
@@ -101,7 +101,7 @@ func (cors *cors) validateWildcardOrigin(origin string) bool {
 	return false
 }
 
-func (cors *cors) validateOrigin(origin string) bool {
+func (cors *cors) validateOrigin(origin string, c *gin.Context) bool {
 	if cors.allowAllOrigins {
 		return true
 	}
@@ -114,7 +114,7 @@ func (cors *cors) validateOrigin(origin string) bool {
 		return true
 	}
 	if cors.allowOriginFunc != nil {
-		return cors.allowOriginFunc(origin)
+		return cors.allowOriginFunc(origin, c)
 	}
 	return false
 }
