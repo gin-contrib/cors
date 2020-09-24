@@ -43,6 +43,12 @@ func newCors(config Config) *cors {
 		panic(err.Error())
 	}
 
+	for _, origin := range config.AllowOrigins {
+		if origin == "*" {
+			config.AllowAllOrigins = true
+		}
+	}
+
 	return &cors{
 		allowOriginFunc:  config.AllowOriginFunc,
 		allowAllOrigins:  config.AllowAllOrigins,
