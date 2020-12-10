@@ -34,7 +34,7 @@ type Config struct {
 	// cookies, HTTP authentication or client side SSL certificates.
 	AllowCredentials bool
 
-	// ExposedHeaders indicates which headers are safe to expose to the API of a CORS
+	// ExposeHeaders indicates which headers are safe to expose to the API of a CORS
 	// API specification
 	ExposeHeaders []string
 
