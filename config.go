@@ -12,7 +12,6 @@ type cors struct {
 	allowCredentials bool
 	allowOriginFunc  func(string) bool
 	allowOrigins     []string
-	exposeHeaders    []string
 	normalHeaders    http.Header
 	preflightHeaders http.Header
 	wildcardOrigins  [][]string
