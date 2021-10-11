@@ -69,11 +69,13 @@ func main() {
   config := cors.DefaultConfig()
   config.AllowOrigins = []string{"http://google.com"}
   // config.AllowOrigins == []string{"http://google.com", "http://facebook.com"}
+  // config.AllowAllOrigins = true
 
   router.Use(cors.New(config))
   router.Run()
 }
 ```
+note: while Default() allows all origins, DefaultConfig() does not and you will still have to use AllowAllOrigins
 
 ### Default() allows all origins
 
