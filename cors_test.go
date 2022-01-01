@@ -1,6 +1,7 @@
 package cors
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -10,10 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
-
-func init() {
-	gin.SetMode(gin.TestMode)
-}
 
 func newTestRouter(config Config) *gin.Engine {
 	router := gin.New()
@@ -35,7 +32,7 @@ func performRequest(r http.Handler, method, origin string) *httptest.ResponseRec
 }
 
 func performRequestWithHeaders(r http.Handler, method, origin string, header http.Header) *httptest.ResponseRecorder {
-	req, _ := http.NewRequest(method, "/", nil)
+	req, _ := http.NewRequestWithContext(context.Background(), method, "/", nil)
 	// From go/net/http/request.go:
 	// For incoming requests, the Host header is promoted to the
 	// Request.Host field and removed from the Header map.
@@ -67,7 +64,6 @@ func TestConfigAddAllow(t *testing.T) {
 	assert.Equal(t, config.AllowMethods, []string{"POST", "GET", "PUT"})
 	assert.Equal(t, config.AllowHeaders, []string{"Some", " cool", "header"})
 	assert.Equal(t, config.ExposeHeaders, []string{"exposed", "header", "hey"})
-
 }
 
 func TestBadConfig(t *testing.T) {
@@ -231,7 +227,11 @@ func TestValidateOrigin(t *testing.T) {
 	assert.False(t, cors.validateOrigin("wss://socket-connection"))
 
 	cors = newCors(Config{
-		AllowOrigins:           []string{"chrome-extension://*", "safari-extension://my-extension-*-app", "*.some-domain.com"},
+		AllowOrigins: []string{
+			"chrome-extension://*",
+			"safari-extension://my-extension-*-app",
+			"*.some-domain.com",
+		},
 		AllowBrowserExtensions: true,
 		AllowWildcard:          true,
 	})
@@ -364,7 +364,6 @@ func TestPassesAllowAllOrigins(t *testing.T) {
 	assert.Equal(t, "Content-Type,Testheader", w.Header().Get("Access-Control-Allow-Headers"))
 	assert.Equal(t, "36000", w.Header().Get("Access-Control-Max-Age"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
-
 }
 
 func TestWildcard(t *testing.T) {

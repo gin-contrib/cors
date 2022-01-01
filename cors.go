@@ -38,7 +38,7 @@ type Config struct {
 	// API specification
 	ExposeHeaders []string
 
-	// MaxAge indicates how long (with second-precision) the results of a preflight request 
+	// MaxAge indicates how long (with second-precision) the results of a preflight request
 	// can be cached
 	MaxAge time.Duration
 
