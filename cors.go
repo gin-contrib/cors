@@ -146,7 +146,7 @@ func (c Config) parseWildcardRules() [][]string {
 func DefaultConfig() Config {
 	return Config{
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type","Filename"},
 		AllowCredentials: false,
 		MaxAge:           12 * time.Hour,
 	}
