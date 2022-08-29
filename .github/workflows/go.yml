@@ -21,13 +21,13 @@ jobs:
       - name: Setup golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.45.0
+          version: v1.49.0
           args: --verbose
   test:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        go: [1.14, 1.15, 1.16, 1.17, 1.18]
+        go: [1.14, 1.15, 1.16, 1.17, 1.18, 1.19]
         include:
           - os: ubuntu-latest
             go-build: ~/.cache/go-build
