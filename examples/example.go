@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/gin-contrib/cors"
+	"github.com/andressg79/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,7 +20,7 @@ func main() {
 		AllowHeaders:     []string{"Origin"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
-		AllowOriginFunc: func(origin string) bool {
+		AllowOriginFunc: func(c *gin.Context, origin string) bool {
 			return origin == "https://github.com"
 		},
 		MaxAge: 12 * time.Hour,
