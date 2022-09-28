@@ -63,6 +63,11 @@ func (cors *cors) applyCors(c *gin.Context) {
 	origin := c.Request.Header.Get("Origin")
 	if len(origin) == 0 {
 		// request is not a CORS request
+		if c.Request.Method == "OPTIONS" {
+			// preflight request without origin
+			cors.handlePreflight(c)
+			c.AbortWithStatus(http.StatusNoContent) // Using 204 is better than 200 when the request status is OPTIONS
+		}
 		return
 	}
 	host := c.Request.Host
