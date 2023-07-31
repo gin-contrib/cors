@@ -90,3 +90,4 @@ func main() {
   router.Run()
 }
 ```
+Using all origins disables the ability for Gin to set cookies for clients. When dealing with credentials, don't allow all origins
