@@ -17,8 +17,8 @@ type Config struct {
 	// Default value is []
 	AllowOrigins []string
 
-	// AllowOriginFunc is a custom function to validate the origin. It take the origin
-	// as argument and returns true if allowed or false otherwise. If this option is
+	// AllowOriginFunc is a custom function to validate the origin. It takes the origin
+	// as an argument and returns true if allowed or false otherwise. If this option is
 	// set, the content of AllowOrigins is ignored.
 	AllowOriginFunc func(origin string) bool
 
