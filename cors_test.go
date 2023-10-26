@@ -168,6 +168,15 @@ func TestGeneratePreflightHeaders_AllowCredentials(t *testing.T) {
 	assert.Len(t, header, 2)
 }
 
+func TestGeneratePreflightHeaders_AllowPrivateNetwork(t *testing.T) {
+	header := generatePreflightHeaders(Config{
+		AllowPrivateNetwork: true,
+	})
+	assert.Equal(t, header.Get("Access-Control-Allow-Private-Network"), "true")
+	assert.Equal(t, header.Get("Vary"), "Origin")
+	assert.Len(t, header, 2)
+}
+
 func TestGeneratePreflightHeaders_AllowMethods(t *testing.T) {
 	header := generatePreflightHeaders(Config{
 		AllowMethods: []string{"GET ", "post", "PUT", " put  "},

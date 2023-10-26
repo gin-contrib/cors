@@ -26,6 +26,9 @@ type Config struct {
 	// cross-domain requests. Default value is simple methods (GET, POST, PUT, PATCH, DELETE, HEAD, and OPTIONS)
 	AllowMethods []string
 
+	// AllowPrivateNetwork indicates whether the response should include allow private network header
+	AllowPrivateNetwork bool
+
 	// AllowHeaders is list of non simple headers the client is allowed to use with
 	// cross-domain requests.
 	AllowHeaders []string
