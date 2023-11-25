@@ -53,6 +53,9 @@ type Config struct {
 
 	// Allows usage of file:// schema (dangerous!) use it only when you 100% sure it's needed
 	AllowFiles bool
+
+	// Allows to pass custom OPTIONS response status code for old browsers / clients
+	OptionsResponseStatusCode int
 }
 
 // AddAllowMethods is allowed to add custom methods
