@@ -19,7 +19,7 @@ jobs:
         with:
           go-version: "stable"
       - name: Setup golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v4
         with:
           args: --verbose
   test:
