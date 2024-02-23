@@ -81,7 +81,7 @@ func (cors *cors) applyCors(c *gin.Context) {
 		return
 	}
 
-	if !cors.validateOrigin(origin) || (cors.allowOriginWithContextFunc != nil && cors.allowOriginWithContextFunc(c, origin)) {
+	if !cors.validateOrigin(origin) || (cors.allowOriginWithContextFunc != nil && !cors.allowOriginWithContextFunc(c, origin)) {
 		c.AbortWithStatus(http.StatusForbidden)
 		return
 	}
