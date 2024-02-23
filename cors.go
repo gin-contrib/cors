@@ -22,6 +22,9 @@ type Config struct {
 	// set, the content of AllowOrigins is ignored.
 	AllowOriginFunc func(origin string) bool
 
+	// same AllowOriginFunc except also receives the full request context
+	AllowOriginWithContextFunc func(c *gin.Context, origin string) bool
+
 	// AllowMethods is a list of methods the client is allowed to use with
 	// cross-domain requests. Default value is simple methods (GET, POST, PUT, PATCH, DELETE, HEAD, and OPTIONS)
 	AllowMethods []string
@@ -102,10 +105,10 @@ func (c Config) validateAllowedSchemas(origin string) bool {
 
 // Validate is check configuration of user defined.
 func (c Config) Validate() error {
-	if c.AllowAllOrigins && (c.AllowOriginFunc != nil || len(c.AllowOrigins) > 0) {
-		return errors.New("conflict settings: all origins are allowed. AllowOriginFunc or AllowOrigins is not needed")
+	if c.AllowAllOrigins && (c.AllowOriginFunc != nil || len(c.AllowOrigins) > 0 || c.AllowOriginWithContextFunc != nil) {
+		return errors.New("conflict settings: all origins are allowed. AllowOriginFunc or AllowOriginFuncWithContext or AllowOrigins is not needed")
 	}
-	if !c.AllowAllOrigins && c.AllowOriginFunc == nil && len(c.AllowOrigins) == 0 {
+	if !c.AllowAllOrigins && c.AllowOriginFunc == nil && c.AllowOriginWithContextFunc == nil && len(c.AllowOrigins) == 0 {
 		return errors.New("conflict settings: all origins disabled")
 	}
 	for _, origin := range c.AllowOrigins {
