@@ -282,6 +282,9 @@ func TestPassesAllowOrigins(t *testing.T) {
 		AllowOriginFunc: func(origin string) bool {
 			return origin == "http://github.com"
 		},
+		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool {
+			return origin == "http://sample.com"
+		},
 	})
 
 	// no CORS request, origin == ""
@@ -324,6 +327,15 @@ func TestPassesAllowOrigins(t *testing.T) {
 	w = performRequest(router, "OPTIONS", "http://github.com")
 	assert.Equal(t, http.StatusNoContent, w.Code)
 	assert.Equal(t, "http://github.com", w.Header().Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "", w.Header().Get("Access-Control-Allow-Credentials"))
+	assert.Equal(t, "GET,POST,PUT,HEAD", w.Header().Get("Access-Control-Allow-Methods"))
+	assert.Equal(t, "Content-Type,Timestamp", w.Header().Get("Access-Control-Allow-Headers"))
+	assert.Equal(t, "43200", w.Header().Get("Access-Control-Max-Age"))
+
+	// allowed CORS prefligh request: allowed via AllowOriginWithContextFunc
+	w = performRequest(router, "OPTIONS", "http://sample.com")
+	assert.Equal(t, http.StatusNoContent, w.Code)
+	assert.Equal(t, "http://sample.com", w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Equal(t, "", w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Equal(t, "GET,POST,PUT,HEAD", w.Header().Get("Access-Control-Allow-Methods"))
 	assert.Equal(t, "Content-Type,Timestamp", w.Header().Get("Access-Control-Allow-Headers"))
