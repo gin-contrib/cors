@@ -205,6 +205,8 @@ func TestGeneratePreflightHeaders_MaxAge(t *testing.T) {
 }
 
 func TestValidateOrigin(t *testing.T) {
+	// review the below for adding a testing context
+	//https://pkg.go.dev/github.com/gin-gonic/gin#CreateTestContextOnly
 	cors := newCors(Config{
 		AllowAllOrigins: true,
 	})
