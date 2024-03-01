@@ -81,8 +81,7 @@ func (cors *cors) applyCors(c *gin.Context) {
 		return
 	}
 
-	validOrigin := cors.validateOrigin(origin) || (cors.allowOriginWithContextFunc != nil && cors.allowOriginWithContextFunc(c, origin))
-	if !validOrigin {
+	if !cors.isOriginValid(c, origin) {
 		c.AbortWithStatus(http.StatusForbidden)
 		return
 	}
@@ -113,6 +112,14 @@ func (cors *cors) validateWildcardOrigin(origin string) bool {
 	}
 
 	return false
+}
+
+func (cors *cors) isOriginValid(c *gin.Context, origin string) bool {
+	valid := cors.validateOrigin(origin)
+	if !valid && cors.allowOriginWithContextFunc != nil {
+		valid = cors.allowOriginWithContextFunc(c, origin)
+	}
+	return valid
 }
 
 func (cors *cors) validateOrigin(origin string) bool {
