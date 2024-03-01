@@ -22,7 +22,10 @@ type Config struct {
 	// set, the content of AllowOrigins is ignored.
 	AllowOriginFunc func(origin string) bool
 
-	// same AllowOriginFunc except also receives the full request context
+	// Same as AllowOriginFunc except also receives the full request context.
+	// This function should use the context as a read only source and not
+	// have any side effects on the request, such as aborting or injecting
+	// values on the request.
 	AllowOriginWithContextFunc func(c *gin.Context, origin string) bool
 
 	// AllowMethods is a list of methods the client is allowed to use with
