@@ -414,3 +414,35 @@ func TestWildcard(t *testing.T) {
 	w = performRequest(router, "GET", "https://github.com")
 	assert.Equal(t, 200, w.Code)
 }
+
+func TestParseWildcardRules_NoWildcard(t *testing.T) {
+	config := Config{
+		AllowOrigins: []string{
+			"http://example.com",
+			"https://google.com",
+			"github.com",
+		},
+		AllowWildcard: false,
+	}
+
+	var expected [][]string
+
+	result := config.parseWildcardRules()
+
+	assert.Equal(t, expected, result)
+}
+
+func TestParseWildcardRules_InvalidWildcard(t *testing.T) {
+	config := Config{
+		AllowOrigins: []string{
+			"http://example.com",
+			"https://*.google.com*",
+			"*.github.com*",
+		},
+		AllowWildcard: true,
+	}
+
+	assert.Panics(t, func() {
+		config.parseWildcardRules()
+	})
+}
