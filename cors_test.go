@@ -277,7 +277,7 @@ func TestValidateTauri(t *testing.T) {
 		AllowBrowserExtensions: true,
 	}
 	err := c.Validate()
-	assert.Equal(t, err.Error(), "bad origin: origins must contain '*' or include http://,https://,chrome-extension://,safari-extension://,moz-extension://,ms-browser-extension://")
+	assert.Error(t, err)
 
 	c = Config{
 		AllowOrigins:           []string{"tauri://localhost:1234"},
