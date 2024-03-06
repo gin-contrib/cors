@@ -86,6 +86,21 @@ func TestBadConfig(t *testing.T) {
 			AllowOrigins: []string{"google.com"},
 		})
 	})
+	assert.Panics(t, func() {
+		New(Config{
+			AllowOrigins: []string{"/http://google.com"},
+		})
+	})
+	assert.Panics(t, func() {
+		New(Config{
+			AllowOrigins: []string{"http?://google.com"},
+		})
+	})
+	assert.Panics(t, func() {
+		New(Config{
+			AllowOrigins: []string{"http?://google.com/g"},
+		})
+	})
 }
 
 func TestNormalize(t *testing.T) {
@@ -270,6 +285,15 @@ func TestValidateOrigin(t *testing.T) {
 	assert.True(t, cors.validateOrigin("https://google.com"))
 	assert.True(t, cors.validateOrigin("example.com"))
 	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id"))
+
+	cors = newCors(Config{
+		AllowOrigins: []string{"/https?://(?:.+\\.)?google\\.com/g"},
+	})
+	assert.True(t, cors.validateOrigin("http://google.com"))
+	assert.True(t, cors.validateOrigin("https://google.com"))
+	assert.True(t, cors.validateOrigin("https://maps.google.com"))
+	assert.True(t, cors.validateOrigin("https://maps.test.google.com"))
+	assert.False(t, cors.validateOrigin("https://maps.google.it"))
 }
 
 func TestValidateTauri(t *testing.T) {
