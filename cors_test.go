@@ -271,6 +271,22 @@ func TestValidateOrigin(t *testing.T) {
 	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id"))
 }
 
+func TestValidateTauri(t *testing.T) {
+	c := Config{
+		AllowOrigins:           []string{"tauri://localhost:1234"},
+		AllowBrowserExtensions: true,
+	}
+	err := c.Validate()
+	assert.Equal(t, err.Error(), "bad origin: origins must contain '*' or include http://,https://,chrome-extension://,safari-extension://,moz-extension://,ms-browser-extension://")
+
+	c = Config{
+		AllowOrigins:           []string{"tauri://localhost:1234"},
+		AllowBrowserExtensions: true,
+		CustomSchemas:          []string{"tauri"},
+	}
+	assert.Nil(t, c.Validate())
+}
+
 func TestPassesAllowOrigins(t *testing.T) {
 	router := newTestRouter(Config{
 		AllowOrigins:     []string{"http://google.com"},
