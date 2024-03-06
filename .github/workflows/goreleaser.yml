@@ -19,7 +19,8 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "stable"
+          go-version-file: go.mod
+          check-latest: true
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5
         with:

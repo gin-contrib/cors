@@ -17,7 +17,8 @@ jobs:
       - name: Setup go
         uses: actions/setup-go@v5
         with:
-          go-version: "stable"
+          go-version-file: go.mod
+          check-latest: true
       - name: Setup golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
