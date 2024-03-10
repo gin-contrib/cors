@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -293,6 +294,22 @@ func TestValidateOrigin(t *testing.T) {
 	assert.True(t, cors.validateOrigin("chrome-extension://random-extension-id"))
 }
 
+func TestValidateTauri(t *testing.T) {
+	c := Config{
+		AllowOrigins:           []string{"tauri://localhost:1234"},
+		AllowBrowserExtensions: true,
+	}
+	err := c.Validate()
+	assert.Error(t, err)
+
+	c = Config{
+		AllowOrigins:           []string{"tauri://localhost:1234"},
+		AllowBrowserExtensions: true,
+		CustomSchemas:          []string{"tauri"},
+	}
+	assert.Nil(t, c.Validate())
+}
+
 func TestPassesAllowOrigins(t *testing.T) {
 	router := newTestRouter(Config{
 		AllowOrigins:     []string{"http://google.com"},
@@ -490,5 +507,126 @@ func TestMultiGroupRouter(t *testing.T) {
 
 	w = performRequestWithHeaders(router, "OPTIONS", "/app2", randomOrgin, emptyHeaders)
 	assert.Equal(t, http.StatusForbidden, w.Code)
+}
 
+func TestParseWildcardRules_NoWildcard(t *testing.T) {
+	config := Config{
+		AllowOrigins: []string{
+			"http://example.com",
+			"https://google.com",
+			"github.com",
+		},
+		AllowWildcard: false,
+	}
+
+	var expected [][]string
+
+	result := config.parseWildcardRules()
+
+	assert.Equal(t, expected, result)
+}
+
+func TestParseWildcardRules_InvalidWildcard(t *testing.T) {
+	config := Config{
+		AllowOrigins: []string{
+			"http://example.com",
+			"https://*.google.com*",
+			"*.github.com*",
+		},
+		AllowWildcard: true,
+	}
+
+	assert.Panics(t, func() {
+		config.parseWildcardRules()
+	})
+}
+
+func TestParseWildcardRules(t *testing.T) {
+	tests := []struct {
+		name           string
+		config         Config
+		expectedResult [][]string
+		expectPanic    bool
+	}{
+		{
+			name: "Wildcard not allowed",
+			config: Config{
+				AllowWildcard: false,
+				AllowOrigins:  []string{"http://example.com", "https://*.domain.com"},
+			},
+			expectedResult: nil,
+			expectPanic:    false,
+		},
+		{
+			name: "No wildcards",
+			config: Config{
+				AllowWildcard: true,
+				AllowOrigins:  []string{"http://example.com", "https://example.com"},
+			},
+			expectedResult: nil,
+			expectPanic:    false,
+		},
+		{
+			name: "Single wildcard at the end",
+			config: Config{
+				AllowWildcard: true,
+				AllowOrigins:  []string{"http://*.example.com"},
+			},
+			expectedResult: [][]string{{"http://", ".example.com"}},
+			expectPanic:    false,
+		},
+		{
+			name: "Single wildcard at the beginning",
+			config: Config{
+				AllowWildcard: true,
+				AllowOrigins:  []string{"*.example.com"},
+			},
+			expectedResult: [][]string{{"*", ".example.com"}},
+			expectPanic:    false,
+		},
+		{
+			name: "Single wildcard in the middle",
+			config: Config{
+				AllowWildcard: true,
+				AllowOrigins:  []string{"http://example.*.com"},
+			},
+			expectedResult: [][]string{{"http://example.", ".com"}},
+			expectPanic:    false,
+		},
+		{
+			name: "Multiple wildcards should panic",
+			config: Config{
+				AllowWildcard: true,
+				AllowOrigins:  []string{"http://*.*.com"},
+			},
+			expectedResult: nil,
+			expectPanic:    true,
+		},
+		{
+			name: "Single wildcard in the end",
+			config: Config{
+				AllowWildcard: true,
+				AllowOrigins:  []string{"http://example.com/*"},
+			},
+			expectedResult: [][]string{{"http://example.com/", "*"}},
+			expectPanic:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.expectPanic {
+				defer func() {
+					if r := recover(); r == nil {
+						t.Errorf("The code did not panic")
+					}
+				}()
+			}
+
+			result := tt.config.parseWildcardRules()
+			if !tt.expectPanic && !reflect.DeepEqual(result, tt.expectedResult) {
+				t.Errorf("Name: %v, Expected %v, got %v", tt.name, tt.expectedResult, result)
+			}
+		})
+	}
 }

@@ -25,5 +25,8 @@ func main() {
 		},
 		MaxAge: 12 * time.Hour,
 	}))
-	router.Run()
+
+	if err := router.Run(); err != nil {
+		panic(err)
+	}
 }

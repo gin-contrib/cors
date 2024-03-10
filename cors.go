@@ -58,6 +58,9 @@ type Config struct {
 	// Allows usage of popular browser extensions schemas
 	AllowBrowserExtensions bool
 
+	// Allows to add custom schema like tauri://
+	CustomSchemas []string
+
 	// Allows usage of WebSocket protocol
 	AllowWebSockets bool
 
@@ -93,6 +96,9 @@ func (c Config) getAllowedSchemas() []string {
 	}
 	if c.AllowFiles {
 		allowedSchemas = append(allowedSchemas, FileSchemas...)
+	}
+	if c.CustomSchemas != nil {
+		allowedSchemas = append(allowedSchemas, c.CustomSchemas...)
 	}
 	return allowedSchemas
 }
@@ -156,7 +162,7 @@ func (c Config) parseWildcardRules() [][]string {
 			continue
 		}
 		if i == (len(o) - 1) {
-			wRules = append(wRules, []string{o[:i-1], "*"})
+			wRules = append(wRules, []string{o[:i], "*"})
 			continue
 		}
 
