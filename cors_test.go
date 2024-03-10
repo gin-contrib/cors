@@ -54,7 +54,11 @@ func performRequest(r http.Handler, method, origin string) *httptest.ResponseRec
 	return performRequestWithHeaders(r, method, "/", origin, http.Header{})
 }
 
-func performRequestWithHeaders(r http.Handler, method, path, origin string, header http.Header) *httptest.ResponseRecorder {
+func performRequestWithHeaders(
+	r http.Handler,
+	method, path, origin string,
+	header http.Header,
+) *httptest.ResponseRecorder {
 	req, _ := http.NewRequestWithContext(context.Background(), method, path, nil)
 	// From go/net/http/request.go:
 	// For incoming requests, the Host header is promoted to the
@@ -472,11 +476,11 @@ func TestMultiGroupRouter(t *testing.T) {
 		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool {
 			path := c.Request.URL.Path
 			if strings.HasPrefix(path, "/app1") {
-				return "http://app1.example.com" == origin
+				return origin == "http://app1.example.com"
 			}
 
 			if strings.HasPrefix(path, "/app2") {
-				return "http://app2.example.com" == origin
+				return origin == "http://app2.example.com"
 			}
 
 			// app 3 allows all origins
