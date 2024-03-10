@@ -314,6 +314,17 @@ func TestValidateTauri(t *testing.T) {
 	assert.Nil(t, c.Validate())
 }
 
+func TestDefaultConfig(t *testing.T) {
+	config := DefaultConfig()
+	config.AllowAllOrigins = true
+	router := newTestRouter(config)
+	w := performRequest(router, "GET", "http://google.com")
+	assert.Equal(t, "get", w.Body.String())
+	assert.Equal(t, "*", w.Header().Get("Access-Control-Allow-Origin"))
+	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
+	assert.Empty(t, w.Header().Get("Access-Control-Expose-Headers"))
+}
+
 func TestPassesAllowOrigins(t *testing.T) {
 	router := newTestRouter(Config{
 		AllowOrigins:     []string{"http://google.com"},
