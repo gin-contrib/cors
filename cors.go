@@ -119,7 +119,7 @@ func (c Config) Validate() error {
 			"AllowOrigins",
 		}, " or ")
 		return fmt.Errorf(
-			"conflict settings: all origins enabled. %s is not needed.",
+			"conflict settings: all origins enabled. %s is not needed",
 			originFields,
 		)
 	}
