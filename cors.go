@@ -2,6 +2,7 @@ package cors
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -108,10 +109,21 @@ func (c Config) validateAllowedSchemas(origin string) bool {
 
 // Validate is check configuration of user defined.
 func (c Config) Validate() error {
-	if c.AllowAllOrigins && (c.AllowOriginFunc != nil || len(c.AllowOrigins) > 0 || c.AllowOriginWithContextFunc != nil) {
-		return errors.New("conflict settings: all origins are allowed. AllowOriginFunc or AllowOriginFuncWithContext or AllowOrigins is not needed")
+	hasOriginFn := c.AllowOriginFunc != nil
+	hasOriginFn = hasOriginFn || c.AllowOriginWithContextFunc != nil
+
+	if c.AllowAllOrigins && (hasOriginFn || len(c.AllowOrigins) > 0) {
+		originFields := strings.Join([]string{
+			"AllowOriginFunc",
+			"AllowOriginFuncWithContext",
+			"AllowOrigins",
+		}, " or ")
+		return fmt.Errorf(
+			"conflict settings: all origins enabled. %s is not needed.",
+			originFields,
+		)
 	}
-	if !c.AllowAllOrigins && c.AllowOriginFunc == nil && c.AllowOriginWithContextFunc == nil && len(c.AllowOrigins) == 0 {
+	if !c.AllowAllOrigins && !hasOriginFn && len(c.AllowOrigins) == 0 {
 		return errors.New("conflict settings: all origins disabled")
 	}
 	for _, origin := range c.AllowOrigins {
