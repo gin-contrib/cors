@@ -27,12 +27,34 @@ func newTestRouter(config Config) *gin.Engine {
 	return router
 }
 
-func performRequest(r http.Handler, method, origin string) *httptest.ResponseRecorder {
-	return performRequestWithHeaders(r, method, origin, http.Header{})
+func multiGroupRouter(config Config) *gin.Engine {
+	router := gin.New()
+	router.Use(New(config))
+
+	app1 := router.Group("/app1")
+	app1.GET("", func(c *gin.Context) {
+		c.String(http.StatusOK, "app1")
+	})
+
+	app2 := router.Group("/app2")
+	app2.GET("", func(c *gin.Context) {
+		c.String(http.StatusOK, "app2")
+	})
+
+	app3 := router.Group("/app3")
+	app3.GET("", func(c *gin.Context) {
+		c.String(http.StatusOK, "app3")
+	})
+
+	return router
 }
 
-func performRequestWithHeaders(r http.Handler, method, origin string, header http.Header) *httptest.ResponseRecorder {
-	req, _ := http.NewRequestWithContext(context.Background(), method, "/", nil)
+func performRequest(r http.Handler, method, origin string) *httptest.ResponseRecorder {
+	return performRequestWithHeaders(r, method, "/", origin, http.Header{})
+}
+
+func performRequestWithHeaders(r http.Handler, method, path, origin string, header http.Header) *httptest.ResponseRecorder {
+	req, _ := http.NewRequestWithContext(context.Background(), method, path, nil)
 	// From go/net/http/request.go:
 	// For incoming requests, the Host header is promoted to the
 	// Request.Host field and removed from the Header map.
@@ -297,7 +319,7 @@ func TestPassesAllowOrigins(t *testing.T) {
 	// no CORS request, origin == host
 	h := http.Header{}
 	h.Set("Host", "facebook.com")
-	w = performRequestWithHeaders(router, "GET", "http://facebook.com", h)
+	w = performRequestWithHeaders(router, "GET", "/", "http://facebook.com", h)
 	assert.Equal(t, "get", w.Body.String())
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
@@ -425,4 +447,48 @@ func TestWildcard(t *testing.T) {
 
 	w = performRequest(router, "GET", "https://github.com")
 	assert.Equal(t, 200, w.Code)
+}
+
+func TestMultiGroupRouter(t *testing.T) {
+	// performRequestWithHeaders(r http.Handler, method, path, origin string, header http.Header)
+	router := multiGroupRouter(Config{
+		AllowMethods: []string{"GET"},
+		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool {
+			path := c.Request.URL.Path
+			if strings.HasPrefix(path, "/app1") {
+				return "http://app1.example.com" == origin
+			}
+
+			if strings.HasPrefix(path, "/app2") {
+				return "http://app2.example.com" == origin
+			}
+
+			// app 3 allows all origins
+			return true
+		},
+	})
+
+	// allowed CORS prefligh request
+	emptyHeaders := http.Header{}
+	app1Origin := "http://app1.example.com"
+	app2Origin := "http://app2.example.com"
+	randomOrgin := "http://random.com"
+
+	// allowed CORS preflight
+	w := performRequestWithHeaders(router, "OPTIONS", "/app1", app1Origin, emptyHeaders)
+	assert.Equal(t, http.StatusNoContent, w.Code)
+
+	w = performRequestWithHeaders(router, "OPTIONS", "/app2", app2Origin, emptyHeaders)
+	assert.Equal(t, http.StatusNoContent, w.Code)
+
+	w = performRequestWithHeaders(router, "OPTIONS", "/app3", randomOrgin, emptyHeaders)
+	assert.Equal(t, http.StatusNoContent, w.Code)
+
+	// disallowed CORS preflight
+	w = performRequestWithHeaders(router, "OPTIONS", "/app1", randomOrgin, emptyHeaders)
+	assert.Equal(t, http.StatusForbidden, w.Code)
+
+	w = performRequestWithHeaders(router, "OPTIONS", "/app2", randomOrgin, emptyHeaders)
+	assert.Equal(t, http.StatusForbidden, w.Code)
+
 }
