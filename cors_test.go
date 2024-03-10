@@ -467,7 +467,6 @@ func TestWildcard(t *testing.T) {
 }
 
 func TestMultiGroupRouter(t *testing.T) {
-	// performRequestWithHeaders(r http.Handler, method, path, origin string, header http.Header)
 	router := multiGroupRouter(Config{
 		AllowMethods: []string{"GET"},
 		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool {
