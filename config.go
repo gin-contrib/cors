@@ -142,10 +142,6 @@ func (cors *cors) validateOrigin(origin string) bool {
 
 func (cors *cors) handlePreflight(c *gin.Context) {
 	header := c.Writer.Header()
-	// for key, value := range cors.preflightHeaders {
-	// 	header[key] = value
-	// }
-
 	for key, value := range cors.preflightHeaders {
 		// Check if the header already exists and merge if it does
 		if existingValue, exists := header[key]; exists {
@@ -170,9 +166,6 @@ func (cors *cors) handlePreflight(c *gin.Context) {
 
 func (cors *cors) handleNormal(c *gin.Context) {
 	header := c.Writer.Header()
-	// for key, value := range cors.normalHeaders {
-	// 	header[key] = value
-	// }
 	for key, value := range cors.normalHeaders {
 		// Check if the header already exists and skip if it does
 		if existingValue, exists := header[key]; exists {
