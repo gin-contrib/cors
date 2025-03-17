@@ -123,7 +123,7 @@ func (cors *cors) isOriginValid(c *gin.Context, origin string) bool {
 	return valid
 }
 
-var originRegex = regexp.MustCompile("^\\/(.+)\\/[gimuy]?$")
+var originRegex = regexp.MustCompile(`^/(.+)/[gimuy]?$`)
 
 func (cors *cors) validateOrigin(origin string) bool {
 	if cors.allowAllOrigins {
@@ -135,7 +135,8 @@ func (cors *cors) validateOrigin(origin string) bool {
 			return true
 		}
 
-		if originRegex.MatchString(value) && regexp.MustCompile(originRegex.FindStringSubmatch(value)[1]).MatchString(origin) {
+		if originRegex.MatchString(value) &&
+			regexp.MustCompile(originRegex.FindStringSubmatch(value)[1]).MatchString(origin) {
 			return true
 		}
 	}
