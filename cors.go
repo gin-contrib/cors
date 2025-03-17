@@ -104,13 +104,14 @@ func (c Config) getAllowedSchemas() []string {
 	return allowedSchemas
 }
 
+var regexpBasedOrigin = regexp.MustCompile(`^\/(.+)\/[gimuy]?$`)
+
 func (c Config) validateAllowedSchemas(origin string) bool {
 	allowedSchemas := c.getAllowedSchemas()
 
-	r, _ := regexp.Compile("^\\/(.+)\\/[gimuy]?$")
-	if r.MatchString(origin) {
+	if regexpBasedOrigin.MatchString(origin) {
 		// Normalize regexp-based origins
-		origin = r.FindStringSubmatch(origin)[1]
+		origin = regexpBasedOrigin.FindStringSubmatch(origin)[1]
 		origin = strings.Replace(origin, "?", "", 1)
 	}
 
