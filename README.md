@@ -5,22 +5,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/gin-contrib/cors)](https://goreportcard.com/report/github.com/gin-contrib/cors)
 [![GoDoc](https://godoc.org/github.com/gin-contrib/cors?status.svg)](https://godoc.org/github.com/gin-contrib/cors)
 
----
-
-## Overview
-
-**CORS (Cross-Origin Resource Sharing)** middleware for [Gin](https://github.com/gin-gonic/gin).
-
-- Enables flexible CORS handling for your Gin-based APIs.
-- Highly configurable: origins, methods, headers, credentials, and more.
-
----
-
-## Table of Contents
-
 - [gin-contrib/cors](#gin-contribcors)
   - [Overview](#overview)
-  - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
   - [Quick Start](#quick-start)
   - [Advanced Usage](#advanced-usage)
@@ -36,6 +22,15 @@
   - [Helper Methods](#helper-methods)
   - [Validation \& Error Handling](#validation--error-handling)
   - [Important Notes](#important-notes)
+
+---
+
+## Overview
+
+**CORS (Cross-Origin Resource Sharing)** middleware for [Gin](https://github.com/gin-gonic/gin).
+
+- Enables flexible CORS handling for your Gin-based APIs.
+- Highly configurable: origins, methods, headers, credentials, and more.
 
 ---
 
