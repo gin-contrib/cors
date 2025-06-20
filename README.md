@@ -5,20 +5,34 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/gin-contrib/cors)](https://goreportcard.com/report/github.com/gin-contrib/cors)
 [![GoDoc](https://godoc.org/github.com/gin-contrib/cors?status.svg)](https://godoc.org/github.com/gin-contrib/cors)
 
-CORS (Cross-Origin Resource Sharing) middleware for [Gin](https://github.com/gin-gonic/gin). Enables flexible CORS handling for your Gin-based APIs.
+---
+
+## Overview
+
+**CORS (Cross-Origin Resource Sharing)** middleware for [Gin](https://github.com/gin-gonic/gin).
+
+- Enables flexible CORS handling for your Gin-based APIs.
+- Highly configurable: origins, methods, headers, credentials, and more.
+
+---
+
+## Table of Contents
 
 - [gin-contrib/cors](#gin-contribcors)
+  - [Overview](#overview)
+  - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
-  - [Quick Start Example](#quick-start-example)
+  - [Quick Start](#quick-start)
   - [Advanced Usage](#advanced-usage)
     - [Custom Configuration](#custom-configuration)
     - [DefaultConfig Reference](#defaultconfig-reference)
     - [Default() Convenience](#default-convenience)
   - [Configuration Reference](#configuration-reference)
     - [Notes on Configuration](#notes-on-configuration)
-      - [Example: Using advanced options](#example-using-advanced-options)
-      - [Using custom origin validation](#using-custom-origin-validation)
-      - [With Gin context](#with-gin-context)
+    - [Examples](#examples)
+      - [Advanced Options](#advanced-options)
+      - [Custom Origin Validation](#custom-origin-validation)
+      - [With Gin Context](#with-gin-context)
   - [Helper Methods](#helper-methods)
   - [Validation \& Error Handling](#validation--error-handling)
   - [Important Notes](#important-notes)
@@ -27,13 +41,11 @@ CORS (Cross-Origin Resource Sharing) middleware for [Gin](https://github.com/gin
 
 ## Installation
 
-Install with:
-
 ```sh
 go get github.com/gin-contrib/cors
 ```
 
-Import the package in your Go code:
+Import in your Go code:
 
 ```go
 import "github.com/gin-contrib/cors"
@@ -41,9 +53,9 @@ import "github.com/gin-contrib/cors"
 
 ---
 
-## Quick Start Example
+## Quick Start
 
-Basic usage with default (all origins allowed):
+Allow all origins (default):
 
 ```go
 import (
@@ -58,7 +70,7 @@ func main() {
 }
 ```
 
-> **Warning:** Allowing all origins disables the ability for Gin to set cookies for clients. For credentialed requests, DO NOT allow all origins.
+> ⚠️ **Warning:** Allowing all origins disables cookies for clients. For credentialed requests, **do not** allow all origins.
 
 ---
 
@@ -66,12 +78,11 @@ func main() {
 
 ### Custom Configuration
 
-Configure allowed origins, methods, and more:
+Configure allowed origins, methods, headers, and more:
 
 ```go
 import (
   "time"
-
   "github.com/gin-contrib/cors"
   "github.com/gin-gonic/gin"
 )
@@ -93,9 +104,11 @@ func main() {
 }
 ```
 
+---
+
 ### DefaultConfig Reference
 
-Start with the library defaults and customize as desired.
+Start with library defaults and customize as needed:
 
 ```go
 import (
@@ -105,11 +118,6 @@ import (
 
 func main() {
   router := gin.Default()
-  // By default:
-  //   - No origins are allowed
-  //   - Methods GET, POST, PUT, HEAD are allowed
-  //   - Credentials are NOT allowed
-  //   - Preflight requests are cached for 12 hours
   config := cors.DefaultConfig()
   config.AllowOrigins = []string{"http://google.com"}
   // config.AllowOrigins = []string{"http://google.com", "http://facebook.com"}
@@ -120,11 +128,13 @@ func main() {
 }
 ```
 
-> **Note:** `Default()` allows all origins, but `DefaultConfig()` does **not**. To allow all origins, set `AllowAllOrigins = true` explicitly.
+> **Note:** `Default()` allows all origins, but `DefaultConfig()` does **not**. To allow all origins, set `AllowAllOrigins = true`.
+
+---
 
 ### Default() Convenience
 
-A simple method to enable all origins:
+Enable all origins with a single call:
 
 ```go
 router.Use(cors.Default()) // Equivalent to AllowAllOrigins = true
@@ -134,37 +144,43 @@ router.Use(cors.Default()) // Equivalent to AllowAllOrigins = true
 
 ## Configuration Reference
 
-This middleware is controlled via the `cors.Config` struct. All fields are optional unless otherwise stated.
+The middleware is controlled via the `cors.Config` struct. All fields are optional unless otherwise stated.
 
-| Field                         | Type                        | Default                                                   | Description                                                                                                                                                    |
-|-------------------------------|-----------------------------|-----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `AllowAllOrigins`             | `bool`                      | `false`                                                   | If true, allows all origins, ignoring `AllowOrigins` and origin checking functions. If true, credentials **cannot** be used.                                   |
-| `AllowOrigins`                | `[]string`                  | `[]`                                                      | List of allowed origins. Supports exact match, `*` for all, and wildcards (see below). Example: `[]string{"https://foo.com"}`                                  |
-| `AllowOriginFunc`             | `func(string) bool`         | `nil`                                                     | Custom function to validate origin. If set, `AllowOrigins` is ignored.                                                                                         |
-| `AllowOriginWithContextFunc`  | `func(*gin.Context,string)bool` | `nil`                                               | Like `AllowOriginFunc`, but allows access to request context. (Read-only: no mutation/side-effects on the request.)                                            |
-| `AllowMethods`                | `[]string`                  | `[]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}` | Allowed HTTP methods for cross-domain requests.                                                                         |
-| `AllowPrivateNetwork`         | `bool`                      | `false`                                                   | Adds the [Private Network Access](https://wicg.github.io/private-network-access/) CORS header (Chrome/Edge feature).                                           |
-| `AllowHeaders`                | `[]string`                  | `[]`                                                      | List of non-simple headers permitted in requests. E.g. `[]string{"Origin"}`                                                                                    |
-| `AllowCredentials`            | `bool`                      | `false`                                                   | Allow cookies, HTTP auth, or client certs in CORS requests. Only if precise origins (not `*`) are used.                                                        |
-| `ExposeHeaders`               | `[]string`                  | `[]`                                                      | Headers exposed to the browser. E.g. `[]string{"Content-Length"}`                                                                                              |
-| `MaxAge`                      | `time.Duration`             | `12 * time.Hour`                                          | Cache time for preflight requests.                                                                                                                             |
-| `AllowWildcard`               | `bool`                      | `false`                                                   | Enables support for wildcards in origins (e.g. `https://*.example.com`). Only one `*` per origin string is allowed.                                            |
-| `AllowBrowserExtensions`      | `bool`                      | `false`                                                   | Allow standard browser extension schemes as origins (e.g. `chrome-extension://`).                                                                              |
-| `CustomSchemas`               | `[]string`                  | `nil`                                                     | Additional allowed URI schemes. Example: `[]string{"tauri://"}`                                                                                                |
-| `AllowWebSockets`             | `bool`                      | `false`                                                   | Allow `ws://` and `wss://` schemas.                                                                                                                            |
-| `AllowFiles`                  | `bool`                      | `false`                                                   | Allow `file://` origins (dangerous; only use when absolutely necessary).                                                                                       |
-| `OptionsResponseStatusCode`   | `int`                       | `204`                                                     | Custom status code for `OPTIONS` responses for legacy browsers/clients.                                                                                        |
+| Field                         | Type                        | Default                                                   | Description                                                                                   |
+|-------------------------------|-----------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| `AllowAllOrigins`             | `bool`                      | `false`                                                   | If true, allows all origins. Credentials **cannot** be used.                                  |
+| `AllowOrigins`                | `[]string`                  | `[]`                                                      | List of allowed origins. Supports exact match, `*`, and wildcards.                            |
+| `AllowOriginFunc`             | `func(string) bool`         | `nil`                                                     | Custom function to validate origin. If set, `AllowOrigins` is ignored.                        |
+| `AllowOriginWithContextFunc`  | `func(*gin.Context,string)bool` | `nil`                                               | Like `AllowOriginFunc`, but with request context.                                             |
+| `AllowMethods`                | `[]string`                  | `[]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}` | Allowed HTTP methods.                                   |
+| `AllowPrivateNetwork`         | `bool`                      | `false`                                                   | Adds [Private Network Access](https://wicg.github.io/private-network-access/) CORS header.    |
+| `AllowHeaders`                | `[]string`                  | `[]`                                                      | List of non-simple headers permitted in requests.                                             |
+| `AllowCredentials`            | `bool`                      | `false`                                                   | Allow cookies, HTTP auth, or client certs. Only if precise origins are used.                  |
+| `ExposeHeaders`               | `[]string`                  | `[]`                                                      | Headers exposed to the browser.                                                               |
+| `MaxAge`                      | `time.Duration`             | `12 * time.Hour`                                          | Cache time for preflight requests.                                                            |
+| `AllowWildcard`               | `bool`                      | `false`                                                   | Enables wildcards in origins (e.g. `https://*.example.com`).                                  |
+| `AllowBrowserExtensions`      | `bool`                      | `false`                                                   | Allow browser extension schemes as origins (e.g. `chrome-extension://`).                      |
+| `CustomSchemas`               | `[]string`                  | `nil`                                                     | Additional allowed URI schemes (e.g. `tauri://`).                                             |
+| `AllowWebSockets`             | `bool`                      | `false`                                                   | Allow `ws://` and `wss://` schemas.                                                           |
+| `AllowFiles`                  | `bool`                      | `false`                                                   | Allow `file://` origins (dangerous; use only if necessary).                                   |
+| `OptionsResponseStatusCode`   | `int`                       | `204`                                                     | Custom status code for `OPTIONS` responses.                                                   |
+
+---
 
 ### Notes on Configuration
 
-- Only one of `AllowAllOrigins`, `AllowOrigins`, `AllowOriginFunc` or `AllowOriginWithContextFunc` should be set.
+- Only one of `AllowAllOrigins`, `AllowOrigins`, `AllowOriginFunc`, or `AllowOriginWithContextFunc` should be set.
 - If `AllowAllOrigins` is true, other origin settings are ignored and credentialed requests are not allowed.
 - If `AllowWildcard` is enabled, only one `*` is allowed per origin string.
 - Use `AllowBrowserExtensions`, `AllowWebSockets`, or `AllowFiles` to permit non-HTTP(s) protocols as origins.
 - Custom schemas allow, for example, usage in desktop apps via custom URI schemes (`tauri://`, etc.).
-- Setting both `AllowOriginFunc` and `AllowOriginWithContextFunc` is allowed, the context-specific function will be preferred if both are set.
+- If both `AllowOriginFunc` and `AllowOriginWithContextFunc` are set, the context-specific function is preferred.
 
-#### Example: Using advanced options
+---
+
+### Examples
+
+#### Advanced Options
 
 ```go
 config := cors.Config{
@@ -173,17 +189,17 @@ config := cors.Config{
   AllowMethods:           []string{"GET", "POST"},
   AllowHeaders:           []string{"Authorization", "Content-Type"},
   AllowCredentials:       true,
-  AllowBrowserExtensions: true, // Allow browser extensions
-  AllowWebSockets:        true, // Allow ws://
+  AllowBrowserExtensions: true,
+  AllowWebSockets:        true,
   AllowFiles:             false,
   CustomSchemas:          []string{"tauri://"},
   MaxAge:                 24 * time.Hour,
   ExposeHeaders:          []string{"X-Custom-Header"},
-  AllowPrivateNetwork:    true, // Chrome/Edge feature
+  AllowPrivateNetwork:    true,
 }
 ```
 
-#### Using custom origin validation
+#### Custom Origin Validation
 
 ```go
 config := cors.Config{
@@ -194,7 +210,7 @@ config := cors.Config{
 }
 ```
 
-#### With Gin context
+#### With Gin Context
 
 ```go
 config := cors.Config{
@@ -209,13 +225,7 @@ config := cors.Config{
 
 ## Helper Methods
 
-For dynamically adding methods or headers to the config:
-
-- **AddAllowMethods(...string):** Add allowed methods.
-- **AddAllowHeaders(...string):** Add allowed headers.
-- **AddExposeHeaders(...string):** Add exposed headers.
-
-**Example:**
+Dynamically add methods or headers to the config:
 
 ```go
 config.AddAllowMethods("DELETE", "OPTIONS")
@@ -227,11 +237,10 @@ config.AddExposeHeaders("X-Other-Header")
 
 ## Validation & Error Handling
 
-Calling `Validate()` on a `Config` checks for misconfiguration (called internally):
-
+- Calling `Validate()` on a `Config` checks for misconfiguration (called internally).
 - If `AllowAllOrigins` is set, you cannot also set `AllowOrigins` or any `AllowOriginFunc`.
 - If neither `AllowAllOrigins`, `AllowOriginFunc`, nor `AllowOrigins` is set, an error is raised.
-- If an `AllowOrigin` contains a wild-card but `AllowWildcard` is not enabled, or more than one `*` is present, a panic is triggered.
+- If an `AllowOrigin` contains a wildcard but `AllowWildcard` is not enabled, or more than one `*` is present, a panic is triggered.
 - Invalid origin schemas or unsupported wildcards are rejected.
 
 ---
