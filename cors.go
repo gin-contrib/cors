@@ -104,7 +104,7 @@ func (c Config) getAllowedSchemas() []string {
 	return allowedSchemas
 }
 
-var regexpBasedOrigin = regexp.MustCompile(`^\/(.+)\/[gimuy]?$`)
+var regexpBasedOrigin = regexp.MustCompile(`^/(.+)/[gimuy]?$`)
 
 func (c Config) validateAllowedSchemas(origin string) bool {
 	allowedSchemas := c.getAllowedSchemas()
