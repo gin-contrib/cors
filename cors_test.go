@@ -630,3 +630,58 @@ func TestParseWildcardRules(t *testing.T) {
 		})
 	}
 }
+
+// TestValidateAllowedSchemasWithAnchoredPatterns tests that regex patterns with ^ anchor
+// pass schema validation after stripping the leading ^ for schema checking
+func TestValidateAllowedSchemasWithAnchoredPatterns(t *testing.T) {
+	tests := []struct {
+		name       string
+		config     Config
+		shouldPass bool
+	}{
+		{
+			name: "anchored patterns with http/https should pass",
+			config: Config{
+				AllowOrigins: []string{
+					"/^https://example[.]com$/",
+					"/^http://localhost:[0-9]+$/",
+					"/^https?://example[.]com$/",
+				},
+			},
+			shouldPass: true,
+		},
+		{
+			name: "pattern without anchor should still pass",
+			config: Config{
+				AllowOrigins: []string{"/https://example[.]com$/"},
+			},
+			shouldPass: true,
+		},
+		{
+			name: "anchored ftp pattern should fail",
+			config: Config{
+				AllowOrigins: []string{"/^ftp://example[.]com$/"},
+			},
+			shouldPass: false,
+		},
+		{
+			name: "custom schemas with anchored patterns",
+			config: Config{
+				AllowOrigins:  []string{"/^wss://example[.]com$/"},
+				CustomSchemas: []string{"wss://"},
+			},
+			shouldPass: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.config.Validate()
+			if tt.shouldPass {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}
