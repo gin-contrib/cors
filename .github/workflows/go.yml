@@ -23,14 +23,14 @@ jobs:
           go-version-file: go.mod
           check-latest: true
       - name: Setup golangci-lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
           version: v2.1
   test:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        go: [1.23, 1.24, 1.25]
+        go: [1.24, 1.25]
         include:
           - os: ubuntu-latest
             go-build: ~/.cache/go-build
