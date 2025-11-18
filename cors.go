@@ -104,7 +104,7 @@ func (c Config) getAllowedSchemas() []string {
 	return allowedSchemas
 }
 
-var regexpBasedOrigin = regexp.MustCompile(`^\/(.+)\/[gimuy]?$`)
+var regexpBasedOrigin = regexp.MustCompile(`^/(.+)/[gimuy]?$`)
 
 func (c Config) validateAllowedSchemas(origin string) bool {
 	allowedSchemas := c.getAllowedSchemas()
@@ -144,11 +144,11 @@ func (c Config) Validate() error {
 		)
 	}
 	if !c.AllowAllOrigins && !hasOriginFn && len(c.AllowOrigins) == 0 {
-		return errors.New("conflict settings: all origins disabled")
+		return errors.New("conflict settings: all origins disabled. Specify either AllowAllOrigins, AllowOrigins or an AllowOriginFunc")
 	}
 	for _, origin := range c.AllowOrigins {
 		if !strings.Contains(origin, "*") && !c.validateAllowedSchemas(origin) {
-			return errors.New("bad origin: origins must contain '*' or include " + strings.Join(c.getAllowedSchemas(), ","))
+			return fmt.Errorf("bad origin ('%s'): origins must contain '*' or include %s", origin, strings.Join(c.getAllowedSchemas(), ","))
 		}
 	}
 	return nil
@@ -166,8 +166,9 @@ func (c Config) parseWildcardRules() [][]string {
 			continue
 		}
 
-		if c := strings.Count(o, "*"); c > 1 {
-			panic(errors.New("only one * is allowed").Error())
+		if count := strings.Count(o, "*"); count > 1 {
+			err := fmt.Errorf("only one * is allowed. actual value is: %s", c.AllowOrigins)
+			panic(err.Error())
 		}
 
 		i := strings.Index(o, "*")
