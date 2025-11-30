@@ -13,6 +13,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	testOriginGitHub = "http://github.com"
+	testOriginSample = "http://sample.com"
+)
+
 func newTestRouter(config Config) *gin.Engine {
 	router := gin.New()
 	router.Use(New(config))
@@ -38,7 +43,9 @@ func performRequest(r http.Handler, method, origin string) *httptest.ResponseRec
 	return performRequestWithHeaders(r, method, "/", origin, http.Header{})
 }
 
-func performRequestWithHeaders(r http.Handler, method, path, origin string, header http.Header) *httptest.ResponseRecorder {
+func performRequestWithHeaders(
+	r http.Handler, method, path, origin string, header http.Header,
+) *httptest.ResponseRecorder {
 	req, _ := http.NewRequestWithContext(context.Background(), method, path, nil)
 	req.Host = header.Get("Host")
 	header.Del("Host")
@@ -211,7 +218,10 @@ func TestValidateOrigin(t *testing.T) {
 		{
 			Config{AllowAllOrigins: true},
 			map[string]bool{
-				"http://google.com": true, "https://google.com": true, "example.com": true, "chrome-extension://random-extension-id": true,
+				"http://google.com":                      true,
+				"https://google.com":                     true,
+				"example.com":                            true,
+				"chrome-extension://random-extension-id": true,
 			},
 		},
 		{
@@ -221,14 +231,21 @@ func TestValidateOrigin(t *testing.T) {
 				AllowBrowserExtensions: true,
 			},
 			map[string]bool{
-				"http://google.com": false, "https://google.com": true, "https://github.com": true,
-				"http://news.ycombinator.com": true, "http://example.com": false, "google.com": false, "chrome-extension://random-extension-id": false,
+				"http://google.com":                      false,
+				"https://google.com":                     true,
+				"https://github.com":                     true,
+				"http://news.ycombinator.com":            true,
+				"http://example.com":                     false,
+				"google.com":                             false,
+				"chrome-extension://random-extension-id": false,
 			},
 		},
 		{
 			Config{AllowOrigins: []string{"https://google.com", "https://github.com"}},
 			map[string]bool{
-				"chrome-extension://random-extension-id": false, "file://some-dangerous-file.js": false, "wss://socket-connection": false,
+				"chrome-extension://random-extension-id": false,
+				"file://some-dangerous-file.js":          false,
+				"wss://socket-connection":                false,
 			},
 		},
 		{
@@ -242,9 +259,13 @@ func TestValidateOrigin(t *testing.T) {
 				AllowWildcard:          true,
 			},
 			map[string]bool{
-				"chrome-extension://random-extension-id": true, "chrome-extension://another-one": true,
-				"safari-extension://my-extension-one-app": true, "safari-extension://my-extension-two-app": true,
-				"moz-extension://ext-id-we-not-allow": false, "http://api.some-domain.com": true, "http://api.another-domain.com": false,
+				"chrome-extension://random-extension-id":  true,
+				"chrome-extension://another-one":          true,
+				"safari-extension://my-extension-one-app": true,
+				"safari-extension://my-extension-two-app": true,
+				"moz-extension://ext-id-we-not-allow":     false,
+				"http://api.some-domain.com":              true,
+				"http://api.another-domain.com":           false,
 			},
 		},
 		{
@@ -261,13 +282,20 @@ func TestValidateOrigin(t *testing.T) {
 		{
 			Config{AllowOrigins: []string{"*"}},
 			map[string]bool{
-				"http://google.com": true, "https://google.com": true, "example.com": true, "chrome-extension://random-extension-id": true,
+				"http://google.com":                      true,
+				"https://google.com":                     true,
+				"example.com":                            true,
+				"chrome-extension://random-extension-id": true,
 			},
 		},
 		{
 			Config{AllowOrigins: []string{"/https?://(?:.+\\.)?google\\.com/g"}},
 			map[string]bool{
-				"http://google.com": true, "https://google.com": true, "https://maps.google.com": true, "https://maps.test.google.com": true, "https://maps.google.it": false,
+				"http://google.com":            true,
+				"https://google.com":           true,
+				"https://maps.google.com":      true,
+				"https://maps.test.google.com": true,
+				"https://maps.google.it":       false,
 			},
 		},
 	}
@@ -314,8 +342,8 @@ func TestCORS_AllowOrigins_NoOrigin(t *testing.T) {
 		ExposeHeaders:              []string{"Data", "x-User"},
 		AllowCredentials:           false,
 		MaxAge:                     12 * time.Hour,
-		AllowOriginFunc:            func(origin string) bool { return origin == "http://github.com" },
-		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == "http://sample.com" },
+		AllowOriginFunc:            func(origin string) bool { return origin == testOriginGitHub },
+		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == testOriginSample },
 	})
 	w := performRequest(router, "GET", "")
 	assert.Equal(t, "get", w.Body.String())
@@ -332,8 +360,8 @@ func TestCORS_AllowOrigins_OriginIsHost(t *testing.T) {
 		ExposeHeaders:              []string{"Data", "x-User"},
 		AllowCredentials:           false,
 		MaxAge:                     12 * time.Hour,
-		AllowOriginFunc:            func(origin string) bool { return origin == "http://github.com" },
-		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == "http://sample.com" },
+		AllowOriginFunc:            func(origin string) bool { return origin == testOriginGitHub },
+		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == testOriginSample },
 	})
 	h := http.Header{}
 	h.Set("Host", "facebook.com")
@@ -352,15 +380,15 @@ func TestCORS_AllowOrigins_AllowedOrigin(t *testing.T) {
 		ExposeHeaders:              []string{"Data", "x-User"},
 		AllowCredentials:           false,
 		MaxAge:                     12 * time.Hour,
-		AllowOriginFunc:            func(origin string) bool { return origin == "http://github.com" },
-		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == "http://sample.com" },
+		AllowOriginFunc:            func(origin string) bool { return origin == testOriginGitHub },
+		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == testOriginSample },
 	})
 
 	tests := []struct {
 		origin, wantExpose string
 	}{
 		{"http://google.com", "Data,X-User"},
-		{"http://github.com", "Data,X-User"},
+		{testOriginGitHub, "Data,X-User"},
 	}
 	for _, tt := range tests {
 		w := performRequest(router, "GET", tt.origin)
@@ -379,8 +407,8 @@ func TestCORS_AllowOrigins_DeniedOrigin(t *testing.T) {
 		ExposeHeaders:              []string{"Data", "x-User"},
 		AllowCredentials:           false,
 		MaxAge:                     12 * time.Hour,
-		AllowOriginFunc:            func(origin string) bool { return origin == "http://github.com" },
-		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == "http://sample.com" },
+		AllowOriginFunc:            func(origin string) bool { return origin == testOriginGitHub },
+		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == testOriginSample },
 	})
 	w := performRequest(router, "GET", "https://google.com")
 	assert.Equal(t, http.StatusForbidden, w.Code)
@@ -397,11 +425,11 @@ func TestCORS_AllowOrigins_Preflight(t *testing.T) {
 		ExposeHeaders:              []string{"Data", "x-User"},
 		AllowCredentials:           false,
 		MaxAge:                     12 * time.Hour,
-		AllowOriginFunc:            func(origin string) bool { return origin == "http://github.com" },
-		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == "http://sample.com" },
+		AllowOriginFunc:            func(origin string) bool { return origin == testOriginGitHub },
+		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == testOriginSample },
 	})
 
-	tests := []string{"http://github.com", "http://sample.com"}
+	tests := []string{testOriginGitHub, testOriginSample}
 	for _, origin := range tests {
 		w := performRequest(router, "OPTIONS", origin)
 		assert.Equal(t, http.StatusNoContent, w.Code)
@@ -421,8 +449,8 @@ func TestCORS_AllowOrigins_DeniedPreflight(t *testing.T) {
 		ExposeHeaders:              []string{"Data", "x-User"},
 		AllowCredentials:           false,
 		MaxAge:                     12 * time.Hour,
-		AllowOriginFunc:            func(origin string) bool { return origin == "http://github.com" },
-		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == "http://sample.com" },
+		AllowOriginFunc:            func(origin string) bool { return origin == testOriginGitHub },
+		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == testOriginSample },
 	})
 	w := performRequest(router, "OPTIONS", "http://example.com")
 	assert.Equal(t, http.StatusForbidden, w.Code)
