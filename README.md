@@ -1,7 +1,7 @@
 # gin-contrib/cors
 
 [![Run Tests](https://github.com/gin-contrib/cors/actions/workflows/go.yml/badge.svg)](https://github.com/gin-contrib/cors/actions/workflows/go.yml)
-[![Trivy Security Scan](https://github.com/gin-contrib/cors/actions/workflows/trivy.yml/badge.svg)](https://github.com/gin-contrib/cors/actions/workflows/trivy.yml)
+[![Trivy Security Scan](https://github.com/gin-contrib/cors/actions/workflows/trivy-scan.yml/badge.svg)](https://github.com/gin-contrib/cors/actions/workflows/trivy-scan.yml)
 [![codecov](https://codecov.io/gh/gin-contrib/cors/branch/master/graph/badge.svg)](https://codecov.io/gh/gin-contrib/cors)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gin-contrib/cors)](https://goreportcard.com/report/github.com/gin-contrib/cors)
 [![GoDoc](https://godoc.org/github.com/gin-contrib/cors?status.svg)](https://godoc.org/github.com/gin-contrib/cors)
