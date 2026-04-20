@@ -14,6 +14,7 @@ type cors struct {
 	allowOriginFunc            func(string) bool
 	allowOriginWithContextFunc func(*gin.Context, string) bool
 	allowOrigins               []string
+	allowOriginRegexes         []*regexp.Regexp
 	normalHeaders              http.Header
 	preflightHeaders           http.Header
 	wildcardOrigins            [][]string
@@ -55,12 +56,21 @@ func newCors(config Config) *cors {
 		config.OptionsResponseStatusCode = http.StatusNoContent
 	}
 
+	normalizedOrigins := normalize(config.AllowOrigins)
+	allowOriginRegexes := make([]*regexp.Regexp, len(normalizedOrigins))
+	for i, value := range normalizedOrigins {
+		if m := originRegex.FindStringSubmatch(value); m != nil {
+			allowOriginRegexes[i] = regexp.MustCompile(m[1])
+		}
+	}
+
 	return &cors{
 		allowOriginFunc:            config.AllowOriginFunc,
 		allowOriginWithContextFunc: config.AllowOriginWithContextFunc,
 		allowAllOrigins:            config.AllowAllOrigins,
 		allowCredentials:           config.AllowCredentials,
-		allowOrigins:               normalize(config.AllowOrigins),
+		allowOrigins:               normalizedOrigins,
+		allowOriginRegexes:         allowOriginRegexes,
 		normalHeaders:              generateNormalHeaders(config),
 		preflightHeaders:           generatePreflightHeaders(config),
 		wildcardOrigins:            config.parseWildcardRules(),
@@ -130,13 +140,14 @@ func (cors *cors) validateOrigin(origin string) bool {
 		return true
 	}
 
-	for _, value := range cors.allowOrigins {
-		if !originRegex.MatchString(value) && value == origin {
-			return true
+	for i, value := range cors.allowOrigins {
+		if cors.allowOriginRegexes[i] == nil {
+			if value == origin {
+				return true
+			}
+			continue
 		}
-
-		if originRegex.MatchString(value) &&
-			regexp.MustCompile(originRegex.FindStringSubmatch(value)[1]).MatchString(origin) {
+		if cors.allowOriginRegexes[i].MatchString(origin) {
 			return true
 		}
 	}
