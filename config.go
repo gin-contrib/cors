@@ -83,7 +83,6 @@ func (cors *cors) applyCors(c *gin.Context) {
 	}
 
 	if !cors.isOriginValid(c, origin) {
-		c.AbortWithStatus(http.StatusForbidden)
 		return
 	}
 

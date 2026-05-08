@@ -411,7 +411,7 @@ func TestCORS_AllowOrigins_DeniedOrigin(t *testing.T) {
 		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == testOriginSample },
 	})
 	w := performRequest(router, "GET", "https://google.com")
-	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Empty(t, w.Header().Get("Access-Control-Expose-Headers"))
@@ -453,7 +453,7 @@ func TestCORS_AllowOrigins_DeniedPreflight(t *testing.T) {
 		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == testOriginSample },
 	})
 	w := performRequest(router, "OPTIONS", "http://example.com")
-	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Equal(t, http.StatusNotFound, w.Code)
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Methods"))
@@ -505,11 +505,11 @@ func TestWildcard(t *testing.T) {
 	}{
 		{"https://gist.github.com", 200},
 		{"https://api.github.com/v1/users", 200},
-		{"https://giphy.com/", 403},
+		{"https://giphy.com/", 200},
 		{"http://hard-to-find-http-example.com", 200},
 		{"https://facebook.com", 200},
 		{"https://something.golang.org", 200},
-		{"https://something.go.org", 403},
+		{"https://something.go.org", 200},
 	}
 	for _, tt := range tests {
 		w := performRequest(router, "GET", tt.origin)
@@ -525,7 +525,7 @@ func TestWildcard(t *testing.T) {
 		origin string
 		code   int
 	}{
-		{"https://gist.github.com", 403},
+		{"https://gist.github.com", 200},
 		{"https://github.com", 200},
 	}
 	for _, tt := range tests2 {
@@ -562,8 +562,8 @@ func TestMultiGroupRouter(t *testing.T) {
 		{"OPTIONS", "/app1", app1Origin, http.StatusNoContent},
 		{"OPTIONS", "/app2", app2Origin, http.StatusNoContent},
 		{"OPTIONS", "/app3", randomOrigin, http.StatusNoContent},
-		{"OPTIONS", "/app1", randomOrigin, http.StatusForbidden},
-		{"OPTIONS", "/app2", randomOrigin, http.StatusForbidden},
+		{"OPTIONS", "/app1", randomOrigin, http.StatusNotFound},
+		{"OPTIONS", "/app2", randomOrigin, http.StatusNotFound},
 	}
 	for _, tt := range tests {
 		w := performRequestWithHeaders(router, tt.method, tt.path, tt.origin, emptyHeaders)
