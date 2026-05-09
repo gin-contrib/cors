@@ -21,7 +21,7 @@ func generateNormalHeaders(c Config) http.Header {
 	if c.AllowAllOrigins {
 		headers.Set("Access-Control-Allow-Origin", "*")
 	} else {
-		headers.Set("Vary", "Origin")
+		headers.Set("Vary", headerOrigin)
 	}
 	return headers
 }
@@ -57,7 +57,7 @@ func generatePreflightHeaders(c Config) http.Header {
 		// see https://github.com/rs/cors/issues/10,
 		// https://github.com/rs/cors/commit/dbdca4d95feaa7511a46e6f1efb3b3aa505bc43f#commitcomment-12352001
 
-		headers.Add("Vary", "Origin")
+		headers.Add("Vary", headerOrigin)
 		headers.Add("Vary", "Access-Control-Request-Method")
 		headers.Add("Vary", "Access-Control-Request-Headers")
 	}
