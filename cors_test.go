@@ -24,7 +24,7 @@ const (
 	testOriginChromeExt   = "chrome-extension://random-extension-id"
 	testRespGet           = "get"
 	testRespPost          = "post"
-	testHeaderCSRFToken   = "X-Csrf-Token"
+	testHeaderCSRFToken   = "X-Csrf-Token" //nolint:gosec // header name, not a credential
 	testHeaderACAOrigin   = "Access-Control-Allow-Origin"
 	testHeaderContentType = "Content-type"
 	testHeaderData        = "Data"
@@ -116,7 +116,10 @@ func TestConvert(t *testing.T) {
 	methods := []string{"Get", http.MethodGet, "get"}
 	headers := []string{"X-CSRF-TOKEN", "X-CSRF-Token", "x-csrf-token"}
 	assert.Equal(t, []string{http.MethodGet, http.MethodGet, http.MethodGet}, convert(methods, strings.ToUpper))
-	assert.Equal(t, []string{testHeaderCSRFToken, testHeaderCSRFToken, testHeaderCSRFToken}, convert(headers, http.CanonicalHeaderKey))
+	assert.Equal(t,
+		[]string{testHeaderCSRFToken, testHeaderCSRFToken, testHeaderCSRFToken},
+		convert(headers, http.CanonicalHeaderKey),
+	)
 }
 
 func TestGenerateNormalHeaders(t *testing.T) {
