@@ -232,10 +232,10 @@ func TestValidateOrigin(t *testing.T) {
 		{
 			Config{AllowAllOrigins: true},
 			map[string]bool{
-				testOriginGoogle:                      true,
-				testOriginGoogleHTTPS:                     true,
-				"example.com":                            true,
-				testOriginChromeExt: true,
+				testOriginGoogle:      true,
+				testOriginGoogleHTTPS: true,
+				"example.com":         true,
+				testOriginChromeExt:   true,
 			},
 		},
 		{
@@ -245,21 +245,21 @@ func TestValidateOrigin(t *testing.T) {
 				AllowBrowserExtensions: true,
 			},
 			map[string]bool{
-				testOriginGoogle:                      false,
-				testOriginGoogleHTTPS:                     true,
-				testOriginGitHubHTTPS:                     true,
-				"http://news.ycombinator.com":            true,
-				testOriginExample:                     false,
-				"google.com":                             false,
-				testOriginChromeExt: false,
+				testOriginGoogle:              false,
+				testOriginGoogleHTTPS:         true,
+				testOriginGitHubHTTPS:         true,
+				"http://news.ycombinator.com": true,
+				testOriginExample:             false,
+				"google.com":                  false,
+				testOriginChromeExt:           false,
 			},
 		},
 		{
 			Config{AllowOrigins: []string{testOriginGoogleHTTPS, testOriginGitHubHTTPS}},
 			map[string]bool{
-				testOriginChromeExt: false,
-				"file://some-dangerous-file.js":          false,
-				"wss://socket-connection":                false,
+				testOriginChromeExt:             false,
+				"file://some-dangerous-file.js": false,
+				"wss://socket-connection":       false,
 			},
 		},
 		{
@@ -273,7 +273,7 @@ func TestValidateOrigin(t *testing.T) {
 				AllowWildcard:          true,
 			},
 			map[string]bool{
-				testOriginChromeExt:  true,
+				testOriginChromeExt:                       true,
 				"chrome-extension://another-one":          true,
 				"safari-extension://my-extension-one-app": true,
 				"safari-extension://my-extension-two-app": true,
@@ -296,17 +296,17 @@ func TestValidateOrigin(t *testing.T) {
 		{
 			Config{AllowOrigins: []string{"*"}},
 			map[string]bool{
-				testOriginGoogle:                      true,
-				testOriginGoogleHTTPS:                     true,
-				"example.com":                            true,
-				testOriginChromeExt: true,
+				testOriginGoogle:      true,
+				testOriginGoogleHTTPS: true,
+				"example.com":         true,
+				testOriginChromeExt:   true,
 			},
 		},
 		{
 			Config{AllowOrigins: []string{"/https?://(?:.+\\.)?google\\.com/g"}},
 			map[string]bool{
-				testOriginGoogle:            true,
-				testOriginGoogleHTTPS:           true,
+				testOriginGoogle:               true,
+				testOriginGoogleHTTPS:          true,
 				"https://maps.google.com":      true,
 				"https://maps.test.google.com": true,
 				"https://maps.google.it":       false,
