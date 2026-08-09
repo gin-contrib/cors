@@ -41,7 +41,7 @@ func generatePreflightHeaders(c Config) http.Header {
 		value := strings.Join(allowHeaders, ",")
 		headers.Set("Access-Control-Allow-Headers", value)
 	}
-	if c.MaxAge > time.Duration(0) {
+	if c.MaxAge >= time.Duration(0) {
 		value := strconv.FormatInt(int64(c.MaxAge/time.Second), 10)
 		headers.Set("Access-Control-Max-Age", value)
 	}
