@@ -3,7 +3,7 @@
 [![Run Tests](https://github.com/gin-contrib/cors/actions/workflows/go.yml/badge.svg)](https://github.com/gin-contrib/cors/actions/workflows/go.yml)
 [![Trivy Security Scan](https://github.com/gin-contrib/cors/actions/workflows/trivy-scan.yml/badge.svg)](https://github.com/gin-contrib/cors/actions/workflows/trivy-scan.yml)
 [![codecov](https://codecov.io/gh/gin-contrib/cors/branch/master/graph/badge.svg)](https://codecov.io/gh/gin-contrib/cors)
-[![GoDoc](https://godoc.org/github.com/gin-contrib/cors?status.svg)](https://godoc.org/github.com/gin-contrib/cors)
+[![Go Reference](https://pkg.go.dev/badge/github.com/gin-contrib/cors.svg)](https://pkg.go.dev/github.com/gin-contrib/cors)
 
 - [gin-contrib/cors](#gin-contribcors)
   - [Overview](#overview)
@@ -243,4 +243,4 @@ config.AddExposeHeaders("X-Other-Header")
 ## Important Notes
 
 - **Enabling all origins disables cookies:** When `AllowAllOrigins` is enabled, Gin cannot set cookies for clients. If you need credential sharing (cookies, authentication headers), **do not** allow all origins.
-- For detailed documentation and configuration options, see the [GoDoc](https://godoc.org/github.com/gin-contrib/cors).
+- For detailed documentation and configuration options, see the [GoDoc](https://pkg.go.dev/github.com/gin-contrib/cors).
