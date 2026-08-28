@@ -342,6 +342,7 @@ func TestValidateTauri(t *testing.T) {
 
 func TestDefaultConfig(t *testing.T) {
 	config := DefaultConfig()
+	assert.Contains(t, config.AllowMethods, "QUERY")
 	config.AllowAllOrigins = true
 	router := newTestRouter(config)
 	w := performRequest(router, http.MethodGet, testOriginGoogle)
