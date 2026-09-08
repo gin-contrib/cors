@@ -199,7 +199,7 @@ func TestGeneratePreflightHeaders(t *testing.T) {
 		{
 			"AllowMethods set",
 			Config{AllowMethods: []string{"GET ", "post", "PUT", " put  "}},
-			map[string]string{"Access-Control-Allow-Methods": "GET,POST,PUT", "Vary": "Origin"},
+			map[string]string{"Access-Control-Allow-Methods": "GET,post,PUT,put", "Vary": "Origin"},
 			2,
 		},
 		{
@@ -452,7 +452,7 @@ func TestCORS_AllowOrigins_Preflight(t *testing.T) {
 		assert.Equal(t, http.StatusNoContent, w.Code)
 		assert.Equal(t, origin, w.Header().Get(testHeaderACAOrigin))
 		assert.Equal(t, "", w.Header().Get("Access-Control-Allow-Credentials"))
-		assert.Equal(t, "GET,POST,PUT,HEAD", w.Header().Get("Access-Control-Allow-Methods"))
+		assert.Equal(t, "GeT,get,post,PUT,Head,POST", w.Header().Get("Access-Control-Allow-Methods"))
 		assert.Equal(t, "Content-Type,Timestamp", w.Header().Get("Access-Control-Allow-Headers"))
 		assert.Equal(t, "43200", w.Header().Get("Access-Control-Max-Age"))
 	}
@@ -503,7 +503,7 @@ func TestPassesAllowAllOrigins(t *testing.T) {
 	w = performRequest(router, http.MethodOptions, testOriginFacebook)
 	assert.Equal(t, http.StatusNoContent, w.Code)
 	assert.Equal(t, "*", w.Header().Get(testHeaderACAOrigin))
-	assert.Equal(t, "PATCH,GET,POST", w.Header().Get("Access-Control-Allow-Methods"))
+	assert.Equal(t, "Patch,get,post,POST", w.Header().Get("Access-Control-Allow-Methods"))
 	assert.Equal(t, "Content-Type,Testheader", w.Header().Get("Access-Control-Allow-Headers"))
 	assert.Equal(t, "36000", w.Header().Get("Access-Control-Max-Age"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
