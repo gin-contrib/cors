@@ -175,43 +175,49 @@ func TestGeneratePreflightHeaders(t *testing.T) {
 		{
 			"AllowAllOrigins false",
 			Config{AllowAllOrigins: false},
-			map[string]string{testHeaderACAOrigin: "", "Vary": "Origin"},
-			1,
+			map[string]string{"Access-Control-Max-Age": "0", "Vary": "Origin"},
+			2,
 		},
 		{
 			"AllowAllOrigins true",
 			Config{AllowAllOrigins: true},
-			map[string]string{"Access-Control-Allow-Origin": "*", "Vary": ""},
-			1,
+			map[string]string{"Access-Control-Allow-Origin": "*", "Access-Control-Max-Age": "0"},
+			2,
 		},
 		{
 			"AllowCredentials true",
 			Config{AllowCredentials: true},
-			map[string]string{"Access-Control-Allow-Credentials": testValueTrue, "Vary": "Origin"},
-			2,
+			map[string]string{"Access-Control-Allow-Credentials": testValueTrue, "Access-Control-Max-Age": "0", "Vary": "Origin"},
+			3,
 		},
 		{
 			"AllowPrivateNetwork true",
 			Config{AllowPrivateNetwork: true},
-			map[string]string{"Access-Control-Allow-Private-Network": testValueTrue, "Vary": "Origin"},
-			2,
+			map[string]string{"Access-Control-Allow-Private-Network": testValueTrue, "Access-Control-Max-Age": "0", "Vary": "Origin"},
+			3,
 		},
 		{
 			"AllowMethods set",
 			Config{AllowMethods: []string{"GET ", "post", "PUT", " put  "}},
-			map[string]string{"Access-Control-Allow-Methods": "GET,POST,PUT", "Vary": "Origin"},
-			2,
+			map[string]string{"Access-Control-Allow-Methods": "GET,post,PUT,put", "Access-Control-Max-Age": "0", "Vary": "Origin"},
+			3,
 		},
 		{
 			"AllowHeaders set",
 			Config{AllowHeaders: []string{"X-user", "Content-Type"}},
-			map[string]string{"Access-Control-Allow-Headers": "X-User,Content-Type", "Vary": "Origin"},
-			2,
+			map[string]string{"Access-Control-Allow-Headers": "X-User,Content-Type", "Access-Control-Max-Age": "0", "Vary": "Origin"},
+			3,
 		},
 		{
 			"MaxAge set",
 			Config{MaxAge: 12 * time.Hour},
 			map[string]string{"Access-Control-Max-Age": "43200", "Vary": "Origin"},
+			2,
+		},
+		{
+			"MaxAge zero",
+			Config{MaxAge: 0},
+			map[string]string{"Access-Control-Max-Age": "0", "Vary": "Origin"},
 			2,
 		},
 	}
@@ -452,7 +458,7 @@ func TestCORS_AllowOrigins_Preflight(t *testing.T) {
 		assert.Equal(t, http.StatusNoContent, w.Code)
 		assert.Equal(t, origin, w.Header().Get(testHeaderACAOrigin))
 		assert.Equal(t, "", w.Header().Get("Access-Control-Allow-Credentials"))
-		assert.Equal(t, "GET,POST,PUT,HEAD", w.Header().Get("Access-Control-Allow-Methods"))
+		assert.Equal(t, "GeT,get,post,PUT,Head,POST", w.Header().Get("Access-Control-Allow-Methods"))
 		assert.Equal(t, "Content-Type,Timestamp", w.Header().Get("Access-Control-Allow-Headers"))
 		assert.Equal(t, "43200", w.Header().Get("Access-Control-Max-Age"))
 	}
@@ -503,7 +509,7 @@ func TestPassesAllowAllOrigins(t *testing.T) {
 	w = performRequest(router, http.MethodOptions, testOriginFacebook)
 	assert.Equal(t, http.StatusNoContent, w.Code)
 	assert.Equal(t, "*", w.Header().Get(testHeaderACAOrigin))
-	assert.Equal(t, "PATCH,GET,POST", w.Header().Get("Access-Control-Allow-Methods"))
+	assert.Equal(t, "Patch,get,post,POST", w.Header().Get("Access-Control-Allow-Methods"))
 	assert.Equal(t, "Content-Type,Testheader", w.Header().Get("Access-Control-Allow-Headers"))
 	assert.Equal(t, "36000", w.Header().Get("Access-Control-Max-Age"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))

@@ -32,7 +32,7 @@ func generatePreflightHeaders(c Config) http.Header {
 		headers.Set("Access-Control-Allow-Credentials", "true")
 	}
 	if len(c.AllowMethods) > 0 {
-		allowMethods := convert(normalize(c.AllowMethods), strings.ToUpper)
+		allowMethods := deduplicateAndTrim(c.AllowMethods)
 		value := strings.Join(allowMethods, ",")
 		headers.Set("Access-Control-Allow-Methods", value)
 	}
@@ -41,7 +41,7 @@ func generatePreflightHeaders(c Config) http.Header {
 		value := strings.Join(allowHeaders, ",")
 		headers.Set("Access-Control-Allow-Headers", value)
 	}
-	if c.MaxAge > time.Duration(0) {
+	if c.MaxAge >= time.Duration(0) {
 		value := strconv.FormatInt(int64(c.MaxAge/time.Second), 10)
 		headers.Set("Access-Control-Max-Age", value)
 	}
@@ -87,4 +87,20 @@ func convert(s []string, c converter) []string {
 		out = append(out, c(i))
 	}
 	return out
+}
+
+func deduplicateAndTrim(values []string) []string {
+	if values == nil {
+		return nil
+	}
+	seen := make(map[string]bool, len(values))
+	var deduped []string
+	for _, v := range values {
+		trimmed := strings.TrimSpace(v)
+		if _, ok := seen[trimmed]; !ok {
+			seen[trimmed] = true
+			deduped = append(deduped, trimmed)
+		}
+	}
+	return deduped
 }
