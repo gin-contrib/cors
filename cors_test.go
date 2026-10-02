@@ -315,6 +315,14 @@ func TestValidateOrigin(t *testing.T) {
 				"https://maps.google.it":       false,
 			},
 		},
+		{
+			Config{AllowOrigins: []string{"null"}},
+			map[string]bool{
+				"null":                true,
+				testOriginGoogle:      false,
+				testOriginGoogleHTTPS: false,
+			},
+		},
 	}
 	for i, test := range tests {
 		cors := newCors(test.config)
@@ -338,6 +346,18 @@ func TestValidateTauri(t *testing.T) {
 		CustomSchemas:          []string{"tauri"},
 	}
 	assert.Nil(t, c.Validate())
+}
+
+func TestValidateNullOrigin(t *testing.T) {
+	c := Config{
+		AllowOrigins: []string{"null"},
+	}
+	assert.NoError(t, c.Validate())
+
+	c = Config{
+		AllowOrigins: []string{testOriginGoogle, "null"},
+	}
+	assert.NoError(t, c.Validate())
 }
 
 func TestDefaultConfig(t *testing.T) {
@@ -476,6 +496,55 @@ func TestCORS_AllowOrigins_DeniedPreflight(t *testing.T) {
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Methods"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Headers"))
 	assert.Empty(t, w.Header().Get("Access-Control-Max-Age"))
+}
+
+func TestCORS_AllowOrigins_NullOrigin(t *testing.T) {
+	router := newTestRouter(Config{
+		AllowOrigins: []string{"null"},
+		AllowMethods: []string{http.MethodGet, http.MethodPost},
+		AllowHeaders: []string{testHeaderContentType},
+	})
+
+	// Normal GET request with null origin
+	w := performRequest(router, http.MethodGet, "null")
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, testRespGet, w.Body.String())
+	assert.Equal(t, "null", w.Header().Get(testHeaderACAOrigin))
+
+	// Preflight OPTIONS request with null origin
+	w = performRequest(router, http.MethodOptions, "null")
+	assert.Equal(t, http.StatusNoContent, w.Code)
+	assert.Equal(t, "null", w.Header().Get(testHeaderACAOrigin))
+	assert.Equal(t, "GET,POST", w.Header().Get("Access-Control-Allow-Methods"))
+
+	// Disallowed origin should be rejected
+	w = performRequest(router, http.MethodGet, testOriginGoogle)
+	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Empty(t, w.Header().Get(testHeaderACAOrigin))
+}
+
+func TestCORS_AllowOrigins_NullAndValidOrigin(t *testing.T) {
+	router := newTestRouter(Config{
+		AllowOrigins: []string{testOriginGoogle, "null"},
+		AllowMethods: []string{http.MethodGet},
+	})
+
+	// "null" origin request
+	w := performRequest(router, http.MethodGet, "null")
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, testRespGet, w.Body.String())
+	assert.Equal(t, "null", w.Header().Get(testHeaderACAOrigin))
+
+	// Allowed domain origin request
+	w = performRequest(router, http.MethodGet, testOriginGoogle)
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, testRespGet, w.Body.String())
+	assert.Equal(t, testOriginGoogle, w.Header().Get(testHeaderACAOrigin))
+
+	// Disallowed origin request
+	w = performRequest(router, http.MethodGet, testOriginGitHub)
+	assert.Equal(t, http.StatusForbidden, w.Code)
+	assert.Empty(t, w.Header().Get(testHeaderACAOrigin))
 }
 
 func TestPassesAllowAllOrigins(t *testing.T) {

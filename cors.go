@@ -150,6 +150,9 @@ func (c Config) Validate() error {
 		return errors.New("conflict settings: all origins disabled")
 	}
 	for _, origin := range c.AllowOrigins {
+		if origin == "null" {
+			continue
+		}
 		if !strings.Contains(origin, "*") && !c.validateAllowedSchemas(origin) {
 			return errors.New("bad origin: origins must contain '*' or include " + strings.Join(c.getAllowedSchemas(), ","))
 		}
