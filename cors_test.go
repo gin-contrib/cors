@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -729,4 +730,36 @@ func TestValidateAllowedSchemasWithAnchoredPatterns(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNewHandler_NonAnonymous(t *testing.T) {
+	cfg := DefaultConfig()
+	cfg.AllowOrigins = []string{"http://example.com"}
+	handler := New(cfg)
+	funcName := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
+
+	assert.Contains(t, funcName, "applyCors")
+	assert.NotContains(t, funcName, "New.func")
+
+	// Also verify Default() middleware
+	defaultHandler := Default()
+	defaultFuncName := runtime.FuncForPC(reflect.ValueOf(defaultHandler).Pointer()).Name()
+	assert.Contains(t, defaultFuncName, "applyCors")
+	assert.NotContains(t, defaultFuncName, "New.func")
+
+	// Verify that the handler executes applyCors properly
+	router := gin.New()
+	router.Use(handler)
+	router.GET("/test", func(c *gin.Context) {
+		c.String(http.StatusOK, "ok")
+	})
+
+	// Denied origin request
+	w := performRequestWithHeaders(router, http.MethodGet, "/test", "http://denied.com", http.Header{})
+	assert.Equal(t, http.StatusForbidden, w.Code)
+
+	// Allowed origin request
+	w2 := performRequestWithHeaders(router, http.MethodGet, "/test", "http://example.com", http.Header{})
+	assert.Equal(t, http.StatusOK, w2.Code)
+	assert.Equal(t, "http://example.com", w2.Header().Get("Access-Control-Allow-Origin"))
 }
