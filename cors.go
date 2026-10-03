@@ -151,7 +151,12 @@ func (c Config) Validate() error {
 	}
 	for _, origin := range c.AllowOrigins {
 		if !strings.Contains(origin, "*") && !c.validateAllowedSchemas(origin) {
-			return errors.New("bad origin: origins must contain '*' or include " + strings.Join(c.getAllowedSchemas(), ","))
+			return errors.New(
+				"bad origin: origins must contain '*' or include " + strings.Join(
+					c.getAllowedSchemas(),
+					",",
+				),
+			)
 		}
 	}
 	return nil
@@ -169,7 +174,7 @@ func (c Config) parseWildcardRules() [][]string {
 			continue
 		}
 
-		if c := strings.Count(o, "*"); c > 1 {
+		if n := strings.Count(o, "*"); n > 1 {
 			panic(errors.New("only one * is allowed").Error())
 		}
 
