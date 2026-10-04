@@ -205,6 +205,7 @@ func DefaultConfig() Config {
 			http.MethodDelete,
 			http.MethodHead,
 			http.MethodOptions,
+			"QUERY",
 		},
 		AllowHeaders:     []string{headerOrigin, "Content-Length", "Content-Type"},
 		AllowCredentials: false,
