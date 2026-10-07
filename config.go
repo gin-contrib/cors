@@ -1,7 +1,6 @@
 package cors
 
 import (
-	"maps"
 	"net/http"
 	"regexp"
 	"strings"
@@ -154,11 +153,21 @@ func (cors *cors) validateOrigin(origin string) bool {
 }
 
 func (cors *cors) handlePreflight(c *gin.Context) {
-	header := c.Writer.Header()
-	maps.Copy(header, cors.preflightHeaders)
+	copyCorsHeaders(c.Writer.Header(), cors.preflightHeaders)
 }
 
 func (cors *cors) handleNormal(c *gin.Context) {
-	header := c.Writer.Header()
-	maps.Copy(header, cors.normalHeaders)
+	copyCorsHeaders(c.Writer.Header(), cors.normalHeaders)
+}
+
+func copyCorsHeaders(dst, src http.Header) {
+	for key, values := range src {
+		if key == "Vary" {
+			for _, value := range values {
+				dst.Add(key, value)
+			}
+		} else {
+			dst[key] = values
+		}
+	}
 }
