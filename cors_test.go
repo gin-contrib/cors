@@ -368,6 +368,143 @@ func TestDefaultConfig(t *testing.T) {
 	assert.Empty(t, w.Header().Get("Access-Control-Expose-Headers"))
 }
 
+func TestCORSVaryHeaders(t *testing.T) {
+	tests := []struct {
+		name string
+		vary []string
+	}{
+		{name: "absent"},
+		{name: "single field", vary: []string{"Accept-Encoding"}},
+		{name: "multiple fields", vary: []string{"Accept-Encoding", "Accept-Language"}},
+		{name: "comma separated", vary: []string{"Accept-Encoding, Accept-Language"}},
+		{name: "wildcard", vary: []string{"*"}},
+		{name: "existing origin", vary: []string{"Accept-Encoding", "Origin"}},
+	}
+	for _, allowAll := range []bool{false, true} {
+		name := "specific origins"
+		if allowAll {
+			name = "all origins"
+		}
+		t.Run(name, func(t *testing.T) {
+			for _, method := range []string{http.MethodGet, http.MethodOptions} {
+				t.Run(method, func(t *testing.T) {
+					for _, test := range tests {
+						t.Run(test.name, func(t *testing.T) {
+							config := DefaultConfig()
+							config.AllowAllOrigins = allowAll
+							if !allowAll {
+								config.AllowOrigins = []string{testOriginGoogle}
+								config.AllowCredentials = true
+								config.ExposeHeaders = []string{testHeaderData}
+							}
+							router := gin.New()
+							router.Use(func(c *gin.Context) {
+								for _, value := range test.vary {
+									c.Writer.Header().Add("Vary", value)
+								}
+							})
+							router.Use(New(config))
+							router.GET(
+								"/",
+								func(c *gin.Context) { c.String(http.StatusOK, testRespGet) },
+							)
+							headers := make(http.Header)
+							if method == http.MethodOptions {
+								headers.Set("Access-Control-Request-Method", http.MethodGet)
+							}
+							w := performRequestWithHeaders(
+								router,
+								method,
+								"/",
+								testOriginGoogle,
+								headers,
+							)
+							want := append([]string(nil), test.vary...)
+							if !allowAll {
+								want = append(want, "Origin")
+								if method == http.MethodOptions {
+									want = append(
+										want,
+										"Access-Control-Request-Method",
+										"Access-Control-Request-Headers",
+									)
+								}
+								assert.Equal(
+									t,
+									testOriginGoogle,
+									w.Header().Get(testHeaderACAOrigin),
+								)
+								assert.Equal(
+									t,
+									testValueTrue,
+									w.Header().Get("Access-Control-Allow-Credentials"),
+								)
+							} else {
+								assert.Equal(t, "*", w.Header().Get(testHeaderACAOrigin))
+							}
+							assert.Equal(t, want, w.Header().Values("Vary"))
+							if method == http.MethodOptions {
+								assert.Equal(t, http.StatusNoContent, w.Code)
+								assert.NotEmpty(t, w.Header().Get("Access-Control-Allow-Methods"))
+							} else {
+								assert.Equal(t, http.StatusOK, w.Code)
+								assert.Equal(t, testRespGet, w.Body.String())
+								if !allowAll {
+									assert.Equal(
+										t,
+										testHeaderData,
+										w.Header().Get("Access-Control-Expose-Headers"),
+									)
+								}
+							}
+						})
+					}
+				})
+			}
+		})
+	}
+}
+
+func TestCORSVaryRequestIsolation(t *testing.T) {
+	for _, method := range []string{http.MethodGet, http.MethodOptions} {
+		t.Run(method, func(t *testing.T) {
+			config := DefaultConfig()
+			config.AllowOrigins = []string{testOriginGoogle}
+			router := gin.New()
+			router.Use(func(c *gin.Context) {
+				if value := c.Request.Header.Get("X-Test-Vary"); value != "" {
+					c.Writer.Header().Add("Vary", value)
+				}
+			})
+			router.Use(New(config))
+			router.GET("/", func(c *gin.Context) { c.String(http.StatusOK, testRespGet) })
+			corsVary := []string{"Origin"}
+			if method == http.MethodOptions {
+				corsVary = append(
+					corsVary,
+					"Access-Control-Request-Method",
+					"Access-Control-Request-Headers",
+				)
+			}
+			for _, value := range []string{"Accept-Encoding", "Accept-Language", ""} {
+				headers := http.Header{
+					"X-Test-Vary": []string{value},
+				}
+				if method == http.MethodOptions {
+					headers.Set("Access-Control-Request-Method", http.MethodGet)
+				}
+				w := performRequestWithHeaders(router, method, "/", testOriginGoogle, headers)
+				want := make([]string, 0, len(corsVary)+1)
+				if value != "" {
+					want = append(want, value)
+				}
+				want = append(want, corsVary...)
+				assert.Equal(t, want, w.Header().Values("Vary"))
+			}
+		})
+	}
+}
+
 func TestCORS_AllowOrigins_NoOrigin(t *testing.T) {
 	router := newTestRouter(Config{
 		AllowOrigins: []string{testOriginGoogle},
