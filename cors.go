@@ -170,7 +170,8 @@ func (c Config) parseWildcardRules() [][]string {
 	}
 
 	for _, o := range c.AllowOrigins {
-		if !strings.Contains(o, "*") {
+		prefix, suffix, found := strings.Cut(o, "*")
+		if !found {
 			continue
 		}
 
@@ -178,17 +179,16 @@ func (c Config) parseWildcardRules() [][]string {
 			panic(errors.New("only one * is allowed").Error())
 		}
 
-		i := strings.Index(o, "*")
-		if i == 0 {
-			wRules = append(wRules, []string{"*", o[1:]})
+		if prefix == "" {
+			wRules = append(wRules, []string{"*", suffix})
 			continue
 		}
-		if i == (len(o) - 1) {
-			wRules = append(wRules, []string{o[:i], "*"})
+		if suffix == "" {
+			wRules = append(wRules, []string{prefix, "*"})
 			continue
 		}
 
-		wRules = append(wRules, []string{o[:i], o[i+1:]})
+		wRules = append(wRules, []string{prefix, suffix})
 	}
 
 	return wRules
