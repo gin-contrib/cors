@@ -1,7 +1,6 @@
 package cors
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -54,14 +53,19 @@ func multiGroupRouter(config Config) *gin.Engine {
 	return router
 }
 
-func performRequest(r http.Handler, method, origin string) *httptest.ResponseRecorder {
-	return performRequestWithHeaders(r, method, "/", origin, http.Header{})
+func performRequest(
+	t testing.TB,
+	r http.Handler,
+	method, origin string,
+) *httptest.ResponseRecorder {
+	return performRequestWithHeaders(t, r, method, "/", origin, http.Header{})
 }
 
 func performRequestWithHeaders(
+	t testing.TB,
 	r http.Handler, method, path, origin string, header http.Header,
 ) *httptest.ResponseRecorder {
-	req, _ := http.NewRequestWithContext(context.Background(), method, path, nil)
+	req, _ := http.NewRequestWithContext(t.Context(), method, path, nil)
 	req.Host = header.Get("Host")
 	header.Del("Host")
 	if origin != "" {
@@ -361,7 +365,7 @@ func TestDefaultConfig(t *testing.T) {
 	config := DefaultConfig()
 	config.AllowAllOrigins = true
 	router := newTestRouter(config)
-	w := performRequest(router, http.MethodGet, testOriginGoogle)
+	w := performRequest(t, router, http.MethodGet, testOriginGoogle)
 	assert.Equal(t, testRespGet, w.Body.String())
 	assert.Equal(t, "*", w.Header().Get(testHeaderACAOrigin))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
@@ -386,7 +390,7 @@ func TestCORS_AllowOrigins_NoOrigin(t *testing.T) {
 		AllowOriginFunc:            func(origin string) bool { return origin == testOriginGitHub },
 		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == testOriginSample },
 	})
-	w := performRequest(router, http.MethodGet, "")
+	w := performRequest(t, router, http.MethodGet, "")
 	assert.Equal(t, testRespGet, w.Body.String())
 	assert.Empty(t, w.Header().Get(testHeaderACAOrigin))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
@@ -413,7 +417,7 @@ func TestCORS_AllowOrigins_OriginIsHost(t *testing.T) {
 	})
 	h := http.Header{}
 	h.Set("Host", "facebook.com")
-	w := performRequestWithHeaders(router, http.MethodGet, "/", "http://facebook.com", h)
+	w := performRequestWithHeaders(t, router, http.MethodGet, "/", "http://facebook.com", h)
 	assert.Equal(t, testRespGet, w.Body.String())
 	assert.Empty(t, w.Header().Get(testHeaderACAOrigin))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
@@ -446,7 +450,7 @@ func TestCORS_AllowOrigins_AllowedOrigin(t *testing.T) {
 		{testOriginGitHub, "Data,X-User"},
 	}
 	for _, tt := range tests {
-		w := performRequest(router, http.MethodGet, tt.origin)
+		w := performRequest(t, router, http.MethodGet, tt.origin)
 		assert.Equal(t, testRespGet, w.Body.String())
 		assert.Equal(t, tt.origin, w.Header().Get(testHeaderACAOrigin))
 		assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
@@ -472,7 +476,7 @@ func TestCORS_AllowOrigins_DeniedOrigin(t *testing.T) {
 		AllowOriginFunc:            func(origin string) bool { return origin == testOriginGitHub },
 		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == testOriginSample },
 	})
-	w := performRequest(router, http.MethodGet, testOriginGoogleHTTPS)
+	w := performRequest(t, router, http.MethodGet, testOriginGoogleHTTPS)
 	assert.Equal(t, http.StatusForbidden, w.Code)
 	assert.Empty(t, w.Header().Get(testHeaderACAOrigin))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
@@ -500,7 +504,7 @@ func TestCORS_AllowOrigins_Preflight(t *testing.T) {
 
 	tests := []string{testOriginGitHub, testOriginSample}
 	for _, origin := range tests {
-		w := performRequest(router, http.MethodOptions, origin)
+		w := performRequest(t, router, http.MethodOptions, origin)
 		assert.Equal(t, http.StatusNoContent, w.Code)
 		assert.Equal(t, origin, w.Header().Get(testHeaderACAOrigin))
 		assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
@@ -528,7 +532,7 @@ func TestCORS_AllowOrigins_DeniedPreflight(t *testing.T) {
 		AllowOriginFunc:            func(origin string) bool { return origin == testOriginGitHub },
 		AllowOriginWithContextFunc: func(c *gin.Context, origin string) bool { return origin == testOriginSample },
 	})
-	w := performRequest(router, http.MethodOptions, testOriginExample)
+	w := performRequest(t, router, http.MethodOptions, testOriginExample)
 	assert.Equal(t, http.StatusForbidden, w.Code)
 	assert.Empty(t, w.Header().Get(testHeaderACAOrigin))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
@@ -547,19 +551,19 @@ func TestPassesAllowAllOrigins(t *testing.T) {
 		MaxAge:           10 * time.Hour,
 	})
 
-	w := performRequest(router, http.MethodGet, "")
+	w := performRequest(t, router, http.MethodGet, "")
 	assert.Equal(t, testRespGet, w.Body.String())
 	assert.Empty(t, w.Header().Get(testHeaderACAOrigin))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Empty(t, w.Header().Get("Access-Control-Expose-Headers"))
 
-	w = performRequest(router, "POST", "example.com")
+	w = performRequest(t, router, "POST", "example.com")
 	assert.Equal(t, testRespPost, w.Body.String())
 	assert.Equal(t, "*", w.Header().Get(testHeaderACAOrigin))
 	assert.Equal(t, "Data2,X-User2", w.Header().Get("Access-Control-Expose-Headers"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 
-	w = performRequest(router, http.MethodOptions, testOriginFacebook)
+	w = performRequest(t, router, http.MethodOptions, testOriginFacebook)
 	assert.Equal(t, http.StatusNoContent, w.Code)
 	assert.Equal(t, "*", w.Header().Get(testHeaderACAOrigin))
 	assert.Equal(t, "PATCH,GET,POST", w.Header().Get("Access-Control-Allow-Methods"))
@@ -594,7 +598,7 @@ func TestWildcard(t *testing.T) {
 		{"https://something.go.org", 403},
 	}
 	for _, tt := range tests {
-		w := performRequest(router, http.MethodGet, tt.origin)
+		w := performRequest(t, router, http.MethodGet, tt.origin)
 		assert.Equal(t, tt.code, w.Code)
 	}
 
@@ -611,7 +615,7 @@ func TestWildcard(t *testing.T) {
 		{testOriginGitHubHTTPS, 200},
 	}
 	for _, tt := range tests2 {
-		w := performRequest(router, http.MethodGet, tt.origin)
+		w := performRequest(t, router, http.MethodGet, tt.origin)
 		assert.Equal(t, tt.code, w.Code)
 	}
 }
@@ -648,7 +652,7 @@ func TestMultiGroupRouter(t *testing.T) {
 		{http.MethodOptions, "/app2", randomOrigin, http.StatusForbidden},
 	}
 	for _, tt := range tests {
-		w := performRequestWithHeaders(router, tt.method, tt.path, tt.origin, emptyHeaders)
+		w := performRequestWithHeaders(t, router, tt.method, tt.path, tt.origin, emptyHeaders)
 		assert.Equal(t, tt.code, w.Code)
 	}
 }
